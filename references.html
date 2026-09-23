@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reference Builder — TIFABO Tools</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--tp:#9DB5C5;--ta:#c8dce8;--td:#0f1214;--ts:#161a1d;--tpn:#1c2125;--tb:rgba(157,181,197,0.11);--tr:rgba(157,181,197,0.06);}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:Helvetica,Arial,sans-serif;background:var(--td);color:#b8ccd6;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.mono{font-family:'DM Mono',monospace;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#263038;border-radius:3px;}
+
+/* ── SIDEBAR: removed ── */
+#sidebar{display:none;}
+.ni,.ntt{display:none;}
+
+/* ── MAIN AREA: full width ── */
+#main-area{flex:1;height:100vh;display:flex;flex-direction:column;overflow:hidden;min-width:0;margin-left:0;}
+
+/* ── TOP BAR ── */
+#top-bar{height:48px;background:var(--ts);border-bottom:1px solid var(--tb);display:flex;align-items:center;padding:0 1.5rem;gap:.75rem;flex-shrink:0;}
+.tbar-tab{font-size:11px;font-family:'DM Mono',monospace;padding:.3rem .75rem;border-radius:6px;cursor:pointer;color:#304050;border:1px solid transparent;transition:all .15s;white-space:nowrap;}
+.tbar-tab:hover{color:var(--tp);background:var(--tr);}
+.tbar-tab.active{color:var(--tp);border-color:rgba(157,181,197,.2);background:var(--tr);}
+
+/* ── PAGE CONTAINER: only one page visible at a time ── */
+#pages{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;}
+.page.active{display:block;}
+
+/* ── COMMON ── */
+.tbtn{background:var(--tp);color:#0f1214;font-weight:600;border:none;cursor:pointer;transition:opacity .18s;font-family:Helvetica,Arial,sans-serif;}
+.tbtn:hover{opacity:.84;}
+.tghost{background:transparent;border:1px solid rgba(157,181,197,.22);color:var(--ta);cursor:pointer;transition:all .18s;font-family:Helvetica,Arial,sans-serif;}
+.tghost:hover{background:var(--tr);border-color:var(--tp);}
+.card{background:var(--ts);border:1px solid var(--tb);border-radius:12px;padding:1.25rem;}
+.sc{background:var(--ts);border:1px solid var(--tb);border-radius:9px;padding:.9rem;}
+.stag{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.15em;margin-bottom:.3rem;}
+.stitle{font-size:clamp(1.4rem,2.5vw,1.9rem);font-weight:700;letter-spacing:-.025em;color:#d0e2ec;}
+textarea,input[type=text],input[type=password],input[type=url],input[type=email]{background:rgba(12,15,17,.9);border:1px solid var(--tb);border-radius:8px;color:#8aa0ac;padding:.55rem .8rem;width:100%;outline:none;font-family:'DM Mono',monospace;font-size:12px;line-height:1.6;resize:none;transition:border-color .18s;}
+textarea:focus,input:focus{border-color:rgba(157,181,197,.3);}
+input[type=range]{-webkit-appearance:none;background:transparent;width:100%;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:12px;width:12px;border-radius:50%;background:var(--tp);cursor:pointer;margin-top:-4px;}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;border-radius:2px;}
+.tw{position:relative;width:38px;height:20px;flex-shrink:0;}
+.tw input{opacity:0;width:0;height:0;}
+.tt{position:absolute;inset:0;background:#263038;border-radius:10px;cursor:pointer;transition:background .18s;}
+.tt::after{content:'';position:absolute;left:2.5px;top:2.5px;width:15px;height:15px;background:#fff;border-radius:50%;transition:transform .18s;}
+.tw input:checked+.tt{background:var(--tp);}
+.tw input:checked+.tt::after{transform:translateX(18px);}
+.dr{background:#d94030;}.dy{background:#e09010;}.dg{background:#25a050;}.dc{background:var(--tp);}
+.mo{position:fixed;inset:0;background:rgba(8,11,13,.93);backdrop-filter:blur(8px);z-index:600;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;}
+.mo.open{display:flex;}
+.mb{background:var(--tpn);border:1px solid var(--tb);border-radius:15px;width:100%;padding:1.6rem;max-height:90vh;overflow-y:auto;}
+@keyframes fadein{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.fi{animation:fadein .25s ease-out both;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.pulse{animation:pulse 2s infinite;}
+
+/* ── PORTFOLIO ── */
+.port-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--tb);}
+.pcrd{background:var(--ts);padding:1.5rem;cursor:pointer;transition:background .18s;position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;}
+.pcrd:hover{background:var(--tpn);}
+.pcrd::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tp);transform:scaleX(0);transform-origin:left;transition:transform .25s;}
+.pcrd:hover::before{transform:scaleX(1);}
+.ptype{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.12em;margin-bottom:.65rem;display:flex;align-items:center;gap:5px;}
+.ptype::before{content:'';width:12px;height:1px;background:var(--tp);}
+.ptag{font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border:1px solid rgba(157,181,197,.12);border-radius:100px;color:#3d5a68;}
+.pfilt{font-size:10px;font-family:'DM Mono',monospace;padding:3px 10px;border:1px solid var(--tb);border-radius:100px;cursor:pointer;color:#304050;transition:all .15s;background:none;}
+.pfilt:hover,.pfilt.active{border-color:var(--tp);color:var(--tp);background:var(--tr);}
+.cv-item{display:flex;gap:1.1rem;padding:.75rem 0;border-bottom:1px solid var(--tb);}
+.cv-year{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);min-width:76px;padding-top:2px;flex-shrink:0;}
+.port-img{width:100%;max-height:200px;object-fit:contain;border-radius:6px;margin-bottom:.75rem;background:transparent;display:block;cursor:zoom-in;}
+.port-img-placeholder{width:100%;height:110px;background:var(--tpn);border:1px dashed rgba(157,181,197,.12);border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem;color:#263038;font-size:10px;font-family:'DM Mono',monospace;}
+
+/* ── TOOLS ── */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;}
+.tcard{background:var(--ts);border:1px solid var(--tb);border-radius:12px;padding:1.5rem;cursor:pointer;transition:all .2s;}
+.tcard:hover{border-color:rgba(157,181,197,.26);background:var(--tpn);}
+.badge-live{background:rgba(37,160,80,.1);color:#3aaf60;border:1px solid rgba(37,160,80,.2);font-size:9px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;}
+
+/* ── WRKASSIST ── */
+#wrk-shell{display:flex;height:100%;overflow:hidden;}
+#wrk-sidebar{width:220px;background:var(--ts);border-right:1px solid var(--tb);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+#wrk-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.wni{display:flex;align-items:center;gap:8px;padding:.45rem .75rem;border-radius:6px;cursor:pointer;transition:all .14s;color:#304050;font-size:12px;margin:0 .4rem;}
+.wni:hover{background:var(--tr);color:#8aa6b5;}
+.wni.active{background:rgba(157,181,197,.11);color:var(--tp);}
+.wni i{width:13px;font-size:11px;}
+.wview{display:none;overflow-y:auto;padding:1.25rem;}
+/* active class is NOT used for display — JS manages display exclusively to prevent conflicts */
+.cr-item{display:flex;align-items:flex-start;gap:9px;padding:.75rem .85rem;border-radius:8px;border:1px solid var(--tb);background:var(--ts);margin-bottom:6px;cursor:pointer;transition:border-color .18s;}
+.cr-item:hover{border-color:rgba(157,181,197,.2);}
+.cr-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.drop-zone{border:1.5px dashed rgba(157,181,197,.16);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all .18s;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--tp);background:rgba(157,181,197,.04);}
+#rich-editor{min-height:420px;padding:1.5rem;color:#9ab0bc;font-size:14px;line-height:1.9;outline:none;font-family:'DM Mono',monospace;}
+#rich-editor:empty::before{content:'Start writing your assignment here…';color:#263038;font-style:italic;}
+.fb-item{padding:.55rem .8rem;border-radius:6px;border-left:2px solid;font-size:10px;line-height:1.65;margin-bottom:5px;font-family:'DM Mono',monospace;}
+.fb-r{border-color:#d94030;background:rgba(217,64,48,.05);color:#b06050;}
+.fb-y{border-color:#e09010;background:rgba(224,144,16,.05);color:#a07030;}
+.fb-g{border-color:#25a050;background:rgba(37,160,80,.05);color:#509060;}
+.fb-c{border-color:var(--tp);background:rgba(157,181,197,.05);color:var(--ta);}
+.report-cr{display:flex;align-items:center;justify-content:space-between;padding:.55rem .8rem;background:rgba(28,33,37,.7);border-radius:7px;border:1px solid var(--tb);margin-bottom:4px;}
+
+/* ── REFS ── */
+.ref-layout{display:grid;grid-template-columns:1fr 300px;gap:1.25rem;}
+.ref-entry{padding:.65rem .85rem;background:rgba(12,15,17,.55);border:1px solid var(--tb);border-radius:7px;margin-bottom:5px;font-size:11px;font-family:'DM Mono',monospace;line-height:1.75;color:#607888;}
+.ref-num{color:var(--tp);font-weight:500;margin-right:5px;}
+.intext-entry{font-size:11px;padding:.4rem .7rem;background:rgba(157,181,197,.04);border:1px solid var(--tb);border-radius:6px;margin-bottom:3px;color:#507080;font-family:'DM Mono',monospace;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:space-between;}
+.intext-entry:hover{background:rgba(157,181,197,.09);}
+.rgroup-btn{font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border:1px solid var(--tb);border-radius:5px;cursor:pointer;background:none;color:#304050;transition:all .12s;width:100%;text-align:left;}
+.rgroup-btn:hover{border-color:var(--tp);color:var(--tp);background:var(--tr);}
+#ref-prog-wrap{height:3px;background:var(--tb);border-radius:2px;margin-bottom:.65rem;overflow:hidden;display:none;}
+#ref-prog-bar{height:100%;background:var(--tp);border-radius:2px;width:0%;transition:width .2s ease;}
+
+/* ── ADMIN PANEL ── */
+#admin-panel{position:fixed;inset:0;z-index:9999;background:rgba(5,7,9,.97);display:none;flex-direction:column;}
+#admin-panel.open{display:flex;}
+.admin-bar{background:#090c0e;border-bottom:1px solid var(--tb);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
+.admin-body{flex:1;overflow-y:auto;padding:1.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;align-content:start;}
+.admin-card{background:var(--ts);border:1px solid var(--tb);border-radius:10px;padding:1rem;}
+.admin-card h3{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.14em;margin-bottom:.75rem;}
+.afl{font-size:9px;font-family:'DM Mono',monospace;color:#304050;display:block;margin-bottom:3px;}
+
+/* ── TOUR ── */
+#tour-overlay{position:fixed;inset:0;z-index:800;pointer-events:none;display:none;}
+#tour-overlay.active{display:block;}
+.tour-bg{position:fixed;inset:0;background:rgba(7,10,12,.85);z-index:801;pointer-events:all;}
+.tour-spot{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(7,10,12,.85);z-index:802;transition:all .3s ease;pointer-events:none;border:1.5px solid var(--tp);}
+.tour-card{position:fixed;z-index:803;background:var(--tpn);border:1px solid rgba(157,181,197,.22);border-radius:12px;padding:1.1rem 1.25rem;width:265px;pointer-events:all;}
+.tour-dot{width:5px;height:5px;border-radius:50%;background:#263038;transition:all .2s;cursor:pointer;flex-shrink:0;}
+.tour-dot.active{background:var(--tp);width:14px;border-radius:3px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  #sidebar{display:none;}
+  #top-bar{overflow-x:auto;}
+  .ref-layout{grid-template-columns:1fr!important;}
+  .admin-body{grid-template-columns:1fr 1fr!important;}
+  .port-grid{grid-template-columns:1fr 1fr!important;}
+  .dash-stats-grid{grid-template-columns:1fr 1fr!important;}
+  .dash-charts-grid{grid-template-columns:1fr!important;}
+  .dash-charts-collapse>summary{display:block!important;}
+}
+@media(max-width:600px){
+  .admin-body{grid-template-columns:1fr!important;}
+  .tools-grid{grid-template-columns:1fr!important;}
+  .port-grid{grid-template-columns:1fr!important;}
+  #wrk-shell{flex-direction:column;}
+  #wrk-sidebar{width:100%;max-height:120px;border-right:none;border-bottom:1px solid var(--tb);overflow-y:auto;}
+  #wrk-sidebar-crit{display:none!important;}
+  .dash-stats-grid{grid-template-columns:1fr 1fr!important;}
+  .dash-charts-collapse>summary{display:block!important;}
+}
+details.dash-charts-collapse>summary{list-style:none;font-size:10px;font-family:'DM Mono',monospace;color:var(--tp);cursor:pointer;padding:.3rem 0 .6rem;user-select:none;display:none;}
+details.dash-charts-collapse>summary::-webkit-details-marker{display:none;}
+details.dash-charts-collapse[open]>summary::before{content:'▾ ';}
+details.dash-charts-collapse:not([open])>summary::before{content:'▸ ';}
+canvas{max-height:180px;}
+</style>
+<style>
+body{overflow:hidden;}
+#standalone-bar{height:46px;background:var(--ts);border-bottom:1px solid var(--tb);display:flex;align-items:center;gap:.75rem;padding:0 1.25rem;flex-shrink:0;font-family:Helvetica,Arial,sans-serif;}
+.sbar-logo{font-size:11px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.12em;}
+.sbar-sep{width:1px;height:16px;background:var(--tb);}
+.sbar-back{font-size:10px;font-family:'DM Mono',monospace;color:#35505e;text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s;}
+.sbar-back:hover{color:var(--tp);}
+.page{display:block!important;}
+</style>
+</head>
+<body>
+<div id="standalone-bar">
+  <div class="sbar-logo">TIFABO</div>
+  <div class="sbar-sep"></div>
+  <a class="sbar-back" href="index.html"><i class="fas fa-arrow-left" style="font-size:9px;"></i> Portfolio</a>
+  <div style="margin-left:auto;font-size:9px;font-family:'DM Mono',monospace;color:#263038;">REFERENCE BUILDER</div>
+</div>
+<div style="flex:1;min-height:calc(100vh - 46px);">
+
+
+  <div style="padding:1.75rem 2rem 1rem;border-bottom:1px solid var(--tb);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+    <div><div class="stag">REFERENCE BUILDER</div><h1 class="stitle">Harvard Citations</h1><p style="font-size:.82rem;color:#35505e;margin-top:.3rem;">Paste a URL to generate a Harvard citation. Sorted alphabetically. Saved in groups.</p></div>
+    <div style="display:flex;gap:6px;">
+      <button class="tghost" style="padding:.38rem .8rem;border-radius:6px;font-size:10px;" onclick="clearRefList()"><i class="fas fa-trash" style="margin-right:4px;font-size:9px;"></i>Clear</button>
+      <button class="tbtn" style="padding:.38rem .8rem;border-radius:6px;font-size:10px;" onclick="saveRefGroup()"><i class="fas fa-save" style="margin-right:4px;font-size:9px;"></i>Save group</button>
+    </div>
+  </div>
+  <div style="padding:1.25rem 2rem;">
+    <div class="ref-layout">
+      <div>
+        <div style="display:flex;gap:6px;margin-bottom:.55rem;" id="tour-ref-input">
+          <input type="url" id="ref-url-input" placeholder="https://example.com — paste URL and press Enter or Add" style="flex:1;" onkeydown="if(event.key==='Enter')addCitation()">
+          <button class="tbtn" style="padding:.45rem .9rem;border-radius:6px;font-size:11px;flex-shrink:0;white-space:nowrap;" onclick="addCitation()" id="ref-add-btn"><i class="fas fa-plus" style="margin-right:3px;font-size:9px;"></i>Add</button>
+        </div>
+        <div id="ref-prog-wrap"><div id="ref-prog-bar"></div></div>
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:#35505e;margin-bottom:.6rem;min-height:13px;" id="ref-status"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+          <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);" id="ref-count-lbl">Reference list (0 items)</div>
+          <button onclick="copyAllRefs()" style="font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border:1px solid var(--tb);border-radius:4px;background:none;color:#35505e;cursor:pointer;"><i class="fas fa-copy" style="margin-right:3px;"></i>Copy all</button>
+        </div>
+        <div id="ref-list" style="min-height:60px;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.85rem;">
+        <div class="sc"><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);margin-bottom:.55rem;letter-spacing:.1em;">SAVED GROUPS</div><div id="ref-groups"><div style="font-size:9px;color:#263038;font-family:'DM Mono',monospace;text-align:center;padding:.4rem;">No saved groups</div></div></div>
+        <div class="sc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem;"><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.1em;">IN-TEXT CITATIONS</div><span style="font-size:8px;color:#304050;">click to copy</span></div><div id="intext-list"><div style="font-size:9px;color:#263038;font-family:'DM Mono',monospace;text-align:center;padding:.4rem;">Add citations first</div></div></div>
+        <div class="sc"><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);margin-bottom:.55rem;letter-spacing:.1em;">CUSTOM RULES</div><textarea id="ref-rules" style="height:60px;font-size:10px;" placeholder="e.g. *additional rule* — sentence case titles"></textarea><button class="tbtn" style="width:100%;padding:.32rem;border-radius:5px;font-size:10px;margin-top:.35rem;" onclick="applyCustomRule()">Apply</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div><!-- end #pages -->
+</div>
+<script>
+function todayFmt(){const d=new Date();const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();}
+// ── REFERENCES ─────────────────────────────────────────────────────────────
+let refList=[],refGroups=[],customRules='';
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function todayFmt(){const d=new Date();return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();}
+function showProg(pct){
+  const w=document.getElementById('ref-prog-wrap'),b=document.getElementById('ref-prog-bar');
+  w.style.display='block';b.style.width=pct+'%';
+  if(pct>=100)setTimeout(()=>{w.style.display='none';b.style.width='0%';},550);
+}
+async function addCitation(){
+  const inp=document.getElementById('ref-url-input'),url=inp.value.trim();
+  if(!url)return;
+  if(!/^https?:\/\//i.test(url)){setRefSt('Please enter a valid URL starting with http:// or https://');return;}
+  const dup=refList.find(r=>r.url===url);
+  if(dup){setRefSt(`Duplicate — already in list as item ${refList.indexOf(dup)+1}. Not added.`);return;}
+  setRefSt('Fetching metadata…');document.getElementById('ref-add-btn').disabled=true;showProg(20);
+  const c=await genHarvard(url);showProg(90);
+  refList.push({url,citation:c,intext:genIntext(c)});
+  refList.sort((a,b)=>a.citation.localeCompare(b.citation));
+  inp.value='';showProg(100);renderRefs();renderIntext();setRefSt('');
+  document.getElementById('ref-add-btn').disabled=false;
+}
+// ── CITATION ENGINE — multi-source metadata (Cite4Me approach) ───────────────
+// Priority order: JSON-LD structured data → Open Graph → DC metadata → schema.org → HTML fallbacks
+// Three CORS proxy fallbacks to maximise fetch success
+
+async function fetchWithProxy(url){
+  const proxies=[
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+  for(const proxy of proxies){
+    try{
+      const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;
+      const data=await r.json();
+      // allorigins returns {contents:...}, corsproxy/codetabs return raw text
+      const html=data.contents!==undefined?data.contents:
+                 typeof data==='string'?data:
+                 JSON.stringify(data);
+      if(html&&html.length>50)return html;
+    }catch(e){/* try next proxy */}
+  }
+  return null;
+}
+
+function extractJsonLd(doc){
+  // JSON-LD is the richest structured metadata source (used by publishers, news sites, Wikipedia)
+  const scripts=doc.querySelectorAll('script[type="application/ld+json"]');
+  for(const s of scripts){
+    try{
+      const ld=JSON.parse(s.textContent);
+      const items=Array.isArray(ld)?ld:[ld];
+      for(const item of items){
+        // Flatten @graph if present
+        const nodes=item['@graph']?item['@graph']:[item];
+        for(const n of nodes){
+          const type=(n['@type']||'').toLowerCase();
+          if(type.includes('article')||type.includes('webpage')||type.includes('newsarticle')||type.includes('scholarlyarticle')||type.includes('book')){
+            return n;
+          }
+        }
+      }
+    }catch(e){}
+  }
+  return null;
+}
+
+function extractAuthorFromLd(ld){
+  if(!ld?.author)return '';
+  const a=ld.author;
+  const getPersonName=(person)=>{
+    if(typeof person==='string')return person;
+    return person.name||'';
+  };
+  const raw=Array.isArray(a)?getPersonName(a[0]):getPersonName(a);
+  return raw.trim();
+}
+
+function extractDateFromLd(ld){
+  const raw=ld?.datePublished||ld?.dateCreated||ld?.dateModified||'';
+  if(!raw)return '';
+  const y=new Date(raw).getFullYear();
+  return isNaN(y)?'':String(y);
+}
+
+function formatHarvardAuthor(rawName){
+  if(!rawName)return '';
+  // Remove "By " prefix
+  const cleaned=rawName.replace(/^\s*by\s+/i,'').trim().split('\n')[0].replace(/\s+/g,' ');
+  // Already in "Lastname, F." format?
+  if(/^[A-Z][a-z]+,\s/.test(cleaned))return cleaned;
+  const parts=cleaned.split(/\s+/);
+  if(parts.length>=2){
+    const surname=parts[parts.length-1];
+    const initials=parts.slice(0,-1).map(n=>n[0]?n[0].toUpperCase()+'.':'').filter(Boolean).join(' ');
+    return `${surname}, ${initials}`;
+  }
+  return cleaned;
+}
+
+async function genHarvard(url){
+  const today=todayFmt();
+  let title='Untitled',author='',year='no date',site='';
+
+  try{
+    const host=new URL(url).hostname.replace('www.','');
+    site=host;
+
+    showProg(30);
+    const html=await fetchWithProxy(url);
+
+    if(html){
+      showProg(55);
+      const doc=new DOMParser().parseFromString(html,'text/html');
+
+      // ── 1. JSON-LD structured data (highest quality — used by publishers) ──
+      const ld=extractJsonLd(doc);
+      if(ld){
+        const ldTitle=ld.headline||ld.name||'';
+        const ldAuthor=extractAuthorFromLd(ld);
+        const ldDate=extractDateFromLd(ld);
+        const ldPublisher=ld.publisher?.name||ld.isPartOf?.name||'';
+        if(ldTitle)title=ldTitle.trim();
+        if(ldAuthor)author=formatHarvardAuthor(ldAuthor);
+        if(ldDate)year=ldDate;
+        if(ldPublisher)site=ldPublisher;
+      }
+
+      // ── 2. Open Graph (Facebook/Twitter metadata — very widely supported) ──
+      if(title==='Untitled'||!title){
+        title=doc.querySelector('meta[property="og:title"]')?.content||
+              doc.querySelector('meta[name="twitter:title"]')?.content||title;
+      }
+      if(!site||site===host){
+        site=doc.querySelector('meta[property="og:site_name"]')?.content||
+             doc.querySelector('meta[name="application-name"]')?.content||site;
+      }
+
+      // ── 3. Dublin Core metadata (academic/institutional sites) ──
+      if(!author){
+        const dcCreator=doc.querySelector('meta[name="DC.Creator"]')?.content||
+                        doc.querySelector('meta[name="dc.creator"]')?.content||
+                        doc.querySelector('meta[name="DC.creator"]')?.content||'';
+        if(dcCreator)author=formatHarvardAuthor(dcCreator);
+      }
+      if(year==='no date'){
+        const dcDate=doc.querySelector('meta[name="DC.Date"]')?.content||
+                     doc.querySelector('meta[name="dc.date"]')?.content||'';
+        if(dcDate){const y=new Date(dcDate).getFullYear();if(!isNaN(y))year=String(y);}
+      }
+      if(title==='Untitled'){
+        const dcTitle=doc.querySelector('meta[name="DC.Title"]')?.content||
+                      doc.querySelector('meta[name="dc.title"]')?.content||'';
+        if(dcTitle)title=dcTitle;
+      }
+
+      // ── 4. Standard HTML meta author (news sites, blogs) ──
+      if(!author){
+        const metaAuthor=doc.querySelector('meta[name="author"]')?.content||
+                         doc.querySelector('meta[property="article:author"]')?.content||
+                         doc.querySelector('meta[name="byl"]')?.content||'';
+        if(metaAuthor)author=formatHarvardAuthor(metaAuthor);
+      }
+
+      // ── 5. Schema.org itemprop (structured HTML, often on academic sites) ──
+      if(!author){
+        const schemaPerson=doc.querySelector('[itemprop="author"] [itemprop="name"]')?.textContent||
+                           doc.querySelector('[itemprop="author"]')?.textContent||'';
+        if(schemaPerson)author=formatHarvardAuthor(schemaPerson);
+      }
+
+      // ── 6. Visible byline patterns (fallback for any site) ──
+      if(!author){
+        // Common byline selectors
+        const bylineSelectors=[
+          '[class*="author"],[class*="byline"],[class*="byl"]',
+          '[rel="author"]',
+          '.post-author,.article-author,.entry-author',
+          '[data-author]'
+        ];
+        for(const sel of bylineSelectors){
+          const el=doc.querySelector(sel);
+          if(el){const t=el.textContent.trim();if(t.length>2&&t.length<80){author=formatHarvardAuthor(t);break;}}
+        }
+      }
+
+      // ── 7. Date: published → created → modified → visible dates ──
+      if(year==='no date'){
+        const dateFields=[
+          doc.querySelector('meta[property="article:published_time"]')?.content,
+          doc.querySelector('meta[name="publish-date"]')?.content,
+          doc.querySelector('meta[name="date"]')?.content,
+          doc.querySelector('meta[name="pubdate"]')?.content,
+          doc.querySelector('time[datetime]')?.getAttribute('datetime'),
+          doc.querySelector('[class*="publish"] time')?.getAttribute('datetime'),
+          doc.querySelector('meta[property="article:modified_time"]')?.content,
+          doc.querySelector('meta[property="og:updated_time"]')?.content,
+          doc.querySelector('meta[name="last-modified"]')?.content,
+          doc.querySelector('meta[http-equiv="last-modified"]')?.content,
+        ].filter(Boolean);
+        for(const d of dateFields){
+          const y=new Date(d).getFullYear();
+          if(!isNaN(y)&&y>1990&&y<=new Date().getFullYear()+1){year=String(y);break;}
+        }
+      }
+
+      // ── 8. Title fallbacks ──
+      if(!title||title==='Untitled'){
+        title=doc.querySelector('meta[name="title"]')?.content||
+              doc.querySelector('h1')?.textContent?.trim()||
+              doc.querySelector('title')?.textContent?.trim()||
+              'Untitled';
+      }
+
+      // Clean title
+      title=title.trim().replace(/\s+/g,' ').replace(/\s*[|\-–—].*$/,'').trim();
+      if(customRules.toLowerCase().includes('sentence case'))
+        title=title.charAt(0).toUpperCase()+title.slice(1).toLowerCase();
+    }
+  }catch(e){
+    try{site=new URL(url).hostname.replace('www.','');}catch{}
+  }
+
+  // Final author fallback: site name
+  if(!author)author=site;
+
+  showProg(95);
+  return `${author} (${year}) ${title}, ${site}. Available at: ${url} (Accessed: ${today}).`;
+}
+function genIntext(c){
+  const m=c.match(/^([^(]+)\((\d{4}|no date)\)/);
+  if(!m)return '(Author, Year)';
+  const authorPart=m[1].trim();
+  // "Surname, F." → "Surname" | "Site Name" → first word
+  const surname=authorPart.split(',')[0].trim().split(/\s+/)[0];
+  return `(${surname}, ${m[2]})`;
+}function renderRefs(){
+  const el=document.getElementById('ref-list');
+  document.getElementById('ref-count-lbl').textContent=`Reference list (${refList.length} item${refList.length!==1?'s':''})`;
+  if(!refList.length){el.innerHTML='<div style="font-size:10px;color:#263038;font-family:\'DM Mono\',monospace;text-align:center;padding:1.25rem;">No citations yet. Paste a URL above.</div>';return;}
+  el.innerHTML=refList.map((r,i)=>`<div class="ref-entry fi"><span class="ref-num">${i+1}.</span>${esc(r.citation)}<button onclick="removeRef(${i})" style="float:right;background:none;border:none;color:#263038;cursor:pointer;font-size:9px;" title="Remove"><i class="fas fa-times"></i></button></div>`).join('');
+}
+function renderIntext(){
+  const el=document.getElementById('intext-list');
+  if(!refList.length){el.innerHTML='<div style="font-size:9px;color:#263038;font-family:\'DM Mono\',monospace;text-align:center;padding:.4rem;">Add citations first</div>';return;}
+  el.innerHTML=refList.map(r=>`<div class="intext-entry" onclick="copyIntext('${r.intext}')" title="Click to copy"><span>${esc(r.intext)}</span><i class="fas fa-copy" style="font-size:8px;color:#304050;flex-shrink:0;"></i></div>`).join('');
+}
+function copyIntext(t){navigator.clipboard.writeText(t).then(()=>setRefSt('Copied: '+t));}
+function copyAllRefs(){navigator.clipboard.writeText(refList.map((r,i)=>`${i+1}. ${r.citation}`).join('\n')).then(()=>setRefSt('All citations copied'));}
+function removeRef(i){refList.splice(i,1);renderRefs();renderIntext();}
+function clearRefList(){if(!confirm('Clear all citations?'))return;refList=[];renderRefs();renderIntext();setRefSt('List cleared.');}
+function saveRefGroup(){if(!refList.length){setRefSt('No citations to save.');return;}const n=prompt('Name this group:',`Group ${refGroups.length+1}`);if(!n)return;refGroups.push({name:n,refs:[...refList]});renderGroups();setRefSt(`"${n}" saved.`);}
+function renderGroups(){const el=document.getElementById('ref-groups');if(!refGroups.length){el.innerHTML='<div style="font-size:9px;color:#263038;font-family:\'DM Mono\',monospace;text-align:center;padding:.4rem;">No saved groups</div>';return;}el.innerHTML=refGroups.map((g,i)=>`<div style="display:flex;gap:4px;margin-bottom:3px;"><button class="rgroup-btn" onclick="loadGroup(${i})">${g.name} (${g.refs.length})</button><button onclick="delGroup(${i})" style="background:none;border:none;color:#263038;cursor:pointer;font-size:8px;flex-shrink:0;"><i class="fas fa-times"></i></button></div>`).join('');}
+function loadGroup(i){if(!confirm('Replace current list with this group?'))return;refList=[...refGroups[i].refs];renderRefs();renderIntext();setRefSt('Loaded: '+refGroups[i].name);}
+function delGroup(i){refGroups.splice(i,1);renderGroups();}
+function applyCustomRule(){customRules=document.getElementById('ref-rules').value;setRefSt('Custom rule applied.');}
+function setRefSt(m){const el=document.getElementById('ref-status');el.textContent=m;if(m)setTimeout(()=>{if(el.textContent===m)el.textContent='';},4000);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+
+// Standalone init
+window.addEventListener('DOMContentLoaded',()=>{
+  refList=JSON.parse(localStorage.getItem('tf5-refs')||'[]');
+  renderRefList();renderRefGroups();
+});
+</script>
+</body>
+</html>
