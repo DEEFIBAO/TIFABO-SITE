@@ -67,9 +67,10 @@ input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;b
 
 /* ── PORTFOLIO ── */
 .port-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--tb);}
-.pcrd{background:var(--ts);padding:1.5rem;cursor:pointer;transition:background .18s;position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;}
-.pcrd:hover{background:var(--tpn);}
-.pcrd::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tp);transform:scaleX(0);transform-origin:left;transition:transform .25s;}
+.pcrd{background:var(--ts);padding:1.5rem;cursor:pointer;border-radius:14px;border:1px solid var(--tb);position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;transition:background .22s cubic-bezier(.4,0,.2,1),border-color .22s,transform .3s cubic-bezier(.34,1.3,.64,1),box-shadow .3s cubic-bezier(.34,1.3,.64,1);will-change:transform;}
+.pcrd:hover{background:var(--tpn);border-color:rgba(157,181,197,.22);transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.3);}
+.pcrd:active{transform:translateY(-1px) scale(.995);}
+.pcrd::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--tp);transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.4,0,.2,1);border-radius:14px 14px 0 0;}
 .pcrd:hover::before{transform:scaleX(1);}
 .ptype{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.12em;margin-bottom:.65rem;display:flex;align-items:center;gap:5px;}
 .ptype::before{content:'';width:12px;height:1px;background:var(--tp);}
@@ -143,13 +144,43 @@ input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;b
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   #sidebar{display:none;}
-  #top-bar{overflow-x:auto;}
+  #top-bar{overflow:visible;}
   .ref-layout{grid-template-columns:1fr!important;}
   .admin-body{grid-template-columns:1fr 1fr!important;}
   .port-grid{grid-template-columns:1fr 1fr!important;}
   .dash-stats-grid{grid-template-columns:1fr 1fr!important;}
   .dash-charts-grid{grid-template-columns:1fr!important;}
   .dash-charts-collapse>summary{display:block!important;}
+}
+@media(max-width:820px){
+  #cv-preview-grid{grid-template-columns:1fr!important;gap:1.5rem!important;}
+  #cv-preview-card{max-width:420px;margin:0 auto;}
+}
+@media(max-width:600px){
+  /* Hero: smaller title, tighter padding */
+  #port-hero{padding:1.75rem 1.1rem 1rem!important;}
+  #portfolio-title{font-size:1.65rem!important;letter-spacing:-.02em!important;}
+  #portfolio-subtitle{font-size:.8rem!important;}
+  /* Horizontal padding everywhere */
+  #port-filter-bar{padding:.7rem 1.1rem!important;}
+  #port-grid{padding:1.1rem!important;gap:.85rem!important;}
+  #notice-board-wrap{padding:.55rem 1.1rem!important;}
+  /* Project cards sized for phone */
+  .pcrd{min-width:225px!important;max-width:255px!important;}
+  /* Stop text clipping */
+  .pcrd .cmd-title,.pcrd div{word-break:break-word;overflow-wrap:anywhere;}
+  /* CV + Experience full width */
+  #cv-preview-grid{grid-template-columns:1fr!important;}
+  #cv-preview-card{max-width:100%!important;}
+  /* Top bar scrollable, no squash */
+  #top-bar{padding:0 .75rem!important;gap:.4rem!important;}
+  .tbar-tab{font-size:10px!important;padding:.3rem .55rem!important;white-space:nowrap;}
+  /* Section padding */
+  .page>div[style*="padding:2rem"]{padding:1.25rem 1.1rem!important;}
+}
+@media(max-width:400px){
+  #portfolio-title{font-size:1.4rem!important;}
+  .pcrd{min-width:200px!important;}
 }
 @media(max-width:600px){
   .admin-body{grid-template-columns:1fr!important;}
@@ -167,6 +198,108 @@ details.dash-charts-collapse[open]>summary::before{content:'▾ ';}
 details.dash-charts-collapse:not([open])>summary::before{content:'▸ ';}
 canvas{max-height:180px;}
 
+
+
+
+/* Tools dropdown — animated, never clipped */
+#tools-menu{opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top left;
+  transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;}
+#tools-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+#tools-chevron{transition:transform .25s cubic-bezier(.4,0,.2,1);}
+#tools-chevron.open{transform:rotate(180deg);}
+#tools-menu a,#tools-menu div{-webkit-tap-highlight-color:transparent;}
+@media(max-width:600px){
+  #tools-menu{position:fixed!important;top:52px!important;left:8px!important;right:8px!important;
+    min-width:0!important;width:auto!important;}
+  #tools-menu a,#tools-menu div{padding:.85rem 1rem!important;font-size:13px!important;}
+}
+
+/* ── Motion system ── */
+:root{--ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.3,.64,1);}
+.tbar-tab{transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);-webkit-tap-highlight-color:transparent;}
+.pfilt{transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);-webkit-tap-highlight-color:transparent;}
+.tbtn,button{-webkit-tap-highlight-color:transparent;}
+.tbtn{transition:opacity .2s var(--ease),transform .2s var(--spring);}
+.tbtn:active{transform:scale(.97);}
+.ptag{transition:border-color .2s var(--ease),color .2s var(--ease);}
+#cv-preview-card{transition:border-color .25s var(--ease),transform .3s var(--spring),box-shadow .3s var(--spring);}
+#cv-preview-card:hover{border-color:rgba(157,181,197,.25);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25);}
+.modal{transition:opacity .25s var(--ease);}
+.modal-box{transition:transform .3s var(--spring),opacity .25s var(--ease);}
+#admin-panel{transition:transform .35s var(--ease);}
+.fi{animation:fadeIn .4s var(--ease) both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+/* ── Hero: tall when scrolled up, compact when scrolled down ── */
+#port-hero{
+  min-height:44vh;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:min-height .55s var(--ease),padding .55s var(--ease);
+  will-change:min-height;
+}
+#port-hero #portfolio-title{transition:font-size .55s var(--ease),letter-spacing .55s var(--ease);}
+#port-hero #portfolio-subtitle,#port-hero .stag{transition:opacity .4s var(--ease);}
+/* Compact state */
+#port-hero.hero-compact{min-height:0;padding-top:1.35rem!important;padding-bottom:.9rem!important;}
+#port-hero.hero-compact #portfolio-title{font-size:1.45rem;letter-spacing:-.02em;}
+#port-hero.hero-compact #portfolio-subtitle{opacity:0;height:0;margin:0;overflow:hidden;}
+#port-hero.hero-compact .stag{opacity:.5;}
+@media(max-width:600px){
+  #port-hero{min-height:36vh;}
+  #port-hero.hero-compact{min-height:0;padding-top:.9rem!important;padding-bottom:.7rem!important;}
+  #port-hero.hero-compact #portfolio-title{font-size:1.15rem;}
+}
+
+/* ── Mobile interaction fixes ── */
+@media(max-width:600px){
+  /* Touch targets min 40px */
+  .tbar-tab{min-height:38px;display:inline-flex;align-items:center;}
+  .pfilt{min-height:34px;padding:.4rem .8rem!important;}
+  #edit-site-btn{min-height:34px;padding:.4rem .7rem!important;}
+  /* Modals fill screen properly, scroll internally */
+  .modal{padding:1rem!important;align-items:flex-start!important;overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;}
+  .modal-box{max-height:none!important;width:100%!important;margin:1rem 0!important;}
+  #cv-expand-modal{padding:.75rem!important;align-items:flex-start!important;}
+  #cv-expand-modal>div{max-width:100%!important;padding:1rem!important;}
+  /* Admin panel full-screen on phone */
+  #admin-panel{width:100%!important;max-width:100%!important;}
+  .admin-body{padding:1rem!important;gap:1rem!important;}
+  .admin-card{padding:.9rem!important;}
+  /* Inputs must be >=16px or iOS zooms the page on focus */
+  input,textarea,select{font-size:16px!important;}
+  /* Project strip: snap scrolling, momentum */
+  #port-grid{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;}
+  #port-grid::-webkit-scrollbar{display:none;}
+  .pcrd{scroll-snap-align:center;}
+  /* Kill hover-lift on touch (sticks after tap) */
+  .pcrd:hover{transform:none;box-shadow:none;}
+  .pcrd:active{transform:scale(.985);}
+  #cv-preview-card:hover{transform:none;box-shadow:none;}
+  /* Hover overlay is useless on touch — always show controls */
+  #cv-hover-overlay{opacity:1!important;position:static!important;background:none!important;
+    padding:.6rem 0 0!important;}
+  /* Notice ticker breathing room */
+  #notice-board-wrap{gap:8px!important;}
+  /* Links wrap */
+  #cv-links{gap:.5rem!important;}
+  #cv-links a{font-size:11px!important;}
+}
+/* Devices without hover at any width */
+@media(hover:none){
+  .pcrd:hover{transform:none;box-shadow:none;background:var(--ts);}
+  .pcrd:hover::before{transform:scaleX(0);}
+  #cv-preview-card:hover{transform:none;box-shadow:none;}
+  #cv-hover-overlay{opacity:1!important;position:static!important;background:none!important;padding:.6rem 0 0!important;}
+}
+
+/* Hero sticks to top of its scroll container so compact state stays visible */
+#port-hero{position:sticky;top:0;z-index:20;background-color:var(--td);}
+#port-hero.hero-compact{box-shadow:0 4px 18px rgba(0,0,0,.35);}
 </style>
 </head>
 <body>
@@ -187,8 +320,8 @@ canvas{max-height:180px;}
     <div style="position:relative;" id="tools-dropdown-wrap">
       <button class="tbar-tab" id="tab-tools-btn" onclick="toggleToolsMenu()" style="display:flex;align-items:center;gap:4px;">Tools <i class="fas fa-chevron-down" style="font-size:8px;transition:transform .2s;" id="tools-chevron"></i></button>
       <div id="tools-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--ts);border:1px solid var(--tb);border-radius:8px;min-width:168px;z-index:300;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);">
-        <a href="wrkassist.html" style="padding:.65rem 1rem;font-size:11px;color:#9ab0bc;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;" onmouseover="this.style.background='var(--tr)'" onmouseout="this.style.background='transparent'"><i class="fas fa-chart-pie" style="font-size:11px;color:var(--tp);width:13px;"></i>WRKASSIST</a>
-        <a href="references.html" style="padding:.65rem 1rem;font-size:11px;color:#9ab0bc;cursor:pointer;display:flex;align-items:center;gap:8px;border-top:1px solid var(--tb);text-decoration:none;" onmouseover="this.style.background='var(--tr)'" onmouseout="this.style.background='transparent'"><i class="fas fa-quote-right" style="font-size:11px;color:var(--tp);width:13px;"></i>References</a>
+        <a href="out-of-service.html?tool=WRKASSIST" style="padding:.65rem 1rem;font-size:11px;color:#9ab0bc;cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;" onmouseover="this.style.background='var(--tr)'" onmouseout="this.style.background='transparent'"><i class="fas fa-chart-pie" style="font-size:11px;color:var(--tp);width:13px;"></i>WRKASSIST</a>
+        <a href="out-of-service.html?tool=Reference+Builder" style="padding:.65rem 1rem;font-size:11px;color:#9ab0bc;cursor:pointer;display:flex;align-items:center;gap:8px;border-top:1px solid var(--tb);text-decoration:none;" onmouseover="this.style.background='var(--tr)'" onmouseout="this.style.background='transparent'"><i class="fas fa-quote-right" style="font-size:11px;color:var(--tp);width:13px;"></i>References</a>
         <div onclick="window.location.href='cli-guide.html'" style="padding:.65rem 1rem;font-size:11px;color:#9ab0bc;cursor:pointer;display:flex;align-items:center;gap:8px;border-top:1px solid var(--tb);" onmouseover="this.style.background='var(--tr)'" onmouseout="this.style.background='transparent'"><i class="fas fa-terminal" style="font-size:11px;color:var(--tp);width:13px;"></i>CLI Guide</div>
       </div>
     </div>
@@ -204,7 +337,7 @@ canvas{max-height:180px;}
 
 <div class="page active" id="page-portfolio">
   <!-- Hero header — centered, large — background settable via admin -->
-  <div id="port-hero" style="padding:2.5rem 2rem 1.25rem;text-align:center;border-bottom:1px solid var(--tb);position:relative;background-size:cover;background-position:center;">
+  <div id="port-hero" style="padding:2.5rem 2rem 1.25rem;text-align:center;border-bottom:1px solid var(--tb);position:relative;background-size:cover;background-position:center;transition:padding .45s cubic-bezier(.4,0,.2,1),min-height .45s cubic-bezier(.4,0,.2,1);">
     <div id="port-hero-overlay" style="display:none;position:absolute;inset:0;background:rgba(15,18,20,.6);pointer-events:none;"></div>
     <div style="position:relative;z-index:1;">
       <div class="stag" style="justify-content:center;margin-bottom:.5rem;">TIFABO — PORTFOLIO</div>
@@ -219,7 +352,7 @@ canvas{max-height:180px;}
     <div style="flex:1;overflow:hidden;" id="notice-outer">
       <div id="notice-ticker" style="display:flex;gap:24px;white-space:nowrap;transition:none;"></div>
     </div>
-    <button onclick="openNoticeBoardSettings()" style="font-size:9px;font-family:'DM Mono',monospace;color:#263038;background:none;border:1px solid rgba(157,181,197,.07);padding:2px 7px;border-radius:4px;cursor:pointer;flex-shrink:0;" title="Add links to notice board"><i class="fas fa-plus" style="font-size:8px;"></i></button>
+
   </div>
 
   <!-- Filters -->
@@ -239,7 +372,7 @@ canvas{max-height:180px;}
       <!-- CV image / PDF preview -->
       <div>
         <div class="stag" style="margin-bottom:.75rem;">CURRICULUM VITAE</div>
-        <div id="cv-preview-card" style="background:var(--ts);border:1px solid var(--tb);border-radius:10px;overflow:hidden;display:flex;align-items:stretch;justify-content:center;cursor:pointer;position:relative;width:100%;max-width:360px;" onclick="expandCV()" title="Click to expand">
+        <div id="cv-preview-card" style="background:var(--ts);border:1px solid var(--tb);border-radius:10px;overflow:hidden;display:flex;align-items:stretch;justify-content:center;cursor:pointer;position:relative;width:100%;" onclick="expandCV()" title="Click to expand">
           <div id="cv-preview-img-wrap" style="width:100%;display:flex;align-items:center;justify-content:center;min-height:120px;">
             <div style="text-align:center;color:#263038;padding:1.5rem;">
               <i class="fas fa-file-pdf" style="font-size:2rem;margin-bottom:.5rem;color:#35505e;display:block;"></i>
@@ -295,20 +428,6 @@ canvas{max-height:180px;}
   </div>
 
   <!-- Notice board settings modal -->
-  <div id="notice-settings-modal" style="display:none;position:fixed;inset:0;background:rgba(7,10,12,.85);z-index:901;align-items:center;justify-content:center;" onclick="this.style.display='none'">
-    <div style="max-width:420px;width:90%;border-radius:12px;background:var(--ts);padding:1.5rem;border:1px solid var(--tb);" onclick="event.stopPropagation()">
-      <div style="font-size:12px;font-weight:600;color:#cfe0ea;margin-bottom:.75rem;">Notice board sources</div>
-      <div style="font-size:10px;color:#35505e;margin-bottom:.75rem;">Add a YouTube channel URL or LinkedIn profile URL. The notice board will pull the latest post title as a scrolling update.</div>
-      <label style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);">YouTube channel URL</label>
-      <input id="nb-yt-url" type="text" placeholder="https://youtube.com/@yourchannel" style="width:100%;margin:.3rem 0 .75rem;box-sizing:border-box;">
-      <label style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);">LinkedIn profile URL</label>
-      <input id="nb-li-url" type="text" placeholder="https://linkedin.com/in/yourname" style="width:100%;margin:.3rem 0 .75rem;box-sizing:border-box;">
-      <label style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);">Custom notice (manual)</label>
-      <input id="nb-custom" type="text" placeholder="e.g. Available for freelance — Summer 2025" style="width:100%;margin:.3rem 0 1rem;box-sizing:border-box;">
-      <button class="tbtn" style="width:100%;padding:.4rem;border-radius:7px;font-size:10px;" onclick="saveNoticeSources()">Save &amp; refresh</button>
-    </div>
-  </div>
-</div>
 
 <!-- Image lightbox -->
 <div id="img-lightbox" style="display:none;position:fixed;inset:0;background:rgba(7,10,12,.95);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;" onclick="document.getElementById('img-lightbox').style.display='none'">
@@ -323,8 +442,8 @@ canvas{max-height:180px;}
   </div>
   <div style="padding:1.5rem 2rem;">
     <div class="tools-grid">
-      <div class="tcard" id="tour-wrkassist" onclick="window.location.href='wrkassist.html'">
-        <div style="display:flex;justify-content:space-between;margin-bottom:.65rem;"><span class="badge-live"><span style="width:5px;height:5px;background:#3aaf60;border-radius:50%;"></span>Live</span><span style="font-size:9px;font-family:'DM Mono',monospace;color:#263038;">v1.0</span></div>
+      <div class="tcard" id="tour-wrkassist" onclick="window.location.href='out-of-service.html?tool=WRKASSIST'">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.65rem;"><span class="badge-live" style="color:#e09010;border-color:rgba(224,144,16,.2);"><span style="width:5px;height:5px;background:#e09010;border-radius:50%;"></span>Offline</span><span style="font-size:9px;font-family:'DM Mono',monospace;color:#263038;">v1.0</span></div>
         <div style="width:38px;height:38px;background:var(--tr);border:1px solid var(--tb);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--tp);margin-bottom:.65rem;"><i class="fas fa-chart-pie"></i></div>
         <div style="font-size:1rem;font-weight:600;color:#cfe0ea;margin-bottom:2px;">WRKASSIST</div>
         <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);margin-bottom:.55rem;">Assignment Analytics Dashboard</div>
@@ -338,8 +457,8 @@ canvas{max-height:180px;}
         <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;color:var(--tp);border:1px solid rgba(157,181,197,.16);padding:5px 11px;border-radius:6px;">Open WRKASSIST <i class="fas fa-arrow-right" style="font-size:8px;"></i></div>
       </div>
 
-      <div class="tcard" id="tour-refs" onclick="window.location.href='references.html'">
-        <div style="display:flex;justify-content:space-between;margin-bottom:.65rem;"><span class="badge-live"><span style="width:5px;height:5px;background:#3aaf60;border-radius:50%;"></span>Live</span><span style="font-size:9px;font-family:'DM Mono',monospace;color:#263038;">v1.0</span></div>
+      <div class="tcard" id="tour-refs" onclick="window.location.href='out-of-service.html?tool=Reference+Builder'">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.65rem;"><span class="badge-live" style="color:#e09010;border-color:rgba(224,144,16,.2);"><span style="width:5px;height:5px;background:#e09010;border-radius:50%;"></span>Offline</span><span style="font-size:9px;font-family:'DM Mono',monospace;color:#263038;">v1.0</span></div>
         <div style="width:38px;height:38px;background:var(--tr);border:1px solid var(--tb);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--tp);margin-bottom:.65rem;"><i class="fas fa-quote-right"></i></div>
         <div style="font-size:1rem;font-weight:600;color:#cfe0ea;margin-bottom:2px;">Reference Builder</div>
         <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);margin-bottom:.55rem;">Harvard Citation Generator</div>
@@ -426,10 +545,19 @@ canvas{max-height:180px;}
         <img id="admin-hero-bg-prev-el" style="width:100%;height:60px;object-fit:cover;border-radius:5px;" alt="">
         <button onclick="clearHeroBg()" style="position:absolute;top:4px;right:4px;font-size:8px;font-family:'DM Mono',monospace;background:rgba(15,18,20,.8);color:#d94030;border:1px solid rgba(217,64,48,.3);padding:2px 6px;border-radius:3px;cursor:pointer;">Remove</button>
       </div>
+      <div style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--tb);">
+        <label class="afl">Notice board — YouTube channel URL</label>
+        <input id="nb-yt-url" type="text" placeholder="https://youtube.com/@yourchannel" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <label class="afl">Notice board — LinkedIn profile URL</label>
+        <input id="nb-li-url" type="text" placeholder="https://linkedin.com/in/yourname" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <label class="afl">Notice board — custom notice</label>
+        <input id="nb-custom" type="text" placeholder="e.g. Available for freelance" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <button class="tbtn" style="width:100%;padding:.3rem;border-radius:5px;font-size:10px;" onclick="saveNoticeSources()">Save notice board</button>
+      </div>
       <button class="tbtn" style="width:100%;padding:.35rem;border-radius:6px;font-size:10px;margin-top:.35rem;" onclick="saveAdminIdentity()">Save identity</button>
       <div style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--tb);">
-        <label class="afl">Upload CV / Certificate (PDF)</label>
-        <input type="file" id="cv-pdf-upload" accept=".pdf" onchange="handleCVUpload(event)" style="background:none;border:1px dashed rgba(157,181,197,.2);padding:.35rem;font-size:9px;cursor:pointer;">
+        <label class="afl">Upload CV / Certificate (PDF or image)</label>
+        <input type="file" id="cv-pdf-upload" accept=".pdf,.png,.jpg,.jpeg,.webp" onchange="handleCVUpload(event)" style="background:none;border:1px dashed rgba(157,181,197,.2);padding:.35rem;font-size:9px;cursor:pointer;">
         <div id="cv-docs-admin" style="margin-top:.5rem;font-size:9px;font-family:'DM Mono',monospace;color:#3d5a68;"></div>
       </div>
     </div>
@@ -564,44 +692,80 @@ let SD={
   experience:[{year:'2023–Present',org:'Studio Name',role:'Junior Designer',desc:'Brand identity, editorial layout, and digital design.'}],
   links:[{label:'LinkedIn',url:'https://linkedin.com',icon:'fa-linkedin'},{label:'Behance',url:'https://behance.net',icon:'fa-behance'},{label:'Email',url:'mailto:hello@example.com',icon:'fa-envelope'}]
 };
-async function loadSD() {
-  try {
-    const data = await fetch('/data').then(r => r.json());
-    if (Object.keys(data).length) { Object.assign(SD, data); return; }
-  } catch (e) {}
-  const local = localStorage.getItem('tf5-sd');
-  if (local) Object.assign(SD, JSON.parse(local));
+async function loadSD(){
+  try{
+    const r=await fetch('/data',{cache:'no-store'});
+    if(r.ok){
+      const d=await r.json();
+      if(d&&Object.keys(d).length){SD={...SD,...d};return;}
+    }
+  }catch(e){}
+  try{const s=localStorage.getItem('tf5-sd');if(s)SD={...SD,...JSON.parse(s)};}catch(e){}
 }
-async function saveSD() {
-  await fetch('/data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(SD)
-  });
-  localStorage.setItem('tf5-sd', JSON.stringify(SD));
+async function saveSD(){
+  try{localStorage.setItem('tf5-sd',JSON.stringify(SD));}catch(e){}
+  try{
+    await fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(SD)});
+  }catch(e){}
+  refreshPortfolioViews();
 }
+
+// ── HERO EXPAND ON SCROLL UP ───────────────────────────────────────────────
+function initHeroScroll(){
+  const hero=document.getElementById('port-hero');
+  const page=document.getElementById('page-portfolio');
+  if(!hero||!page)return;
+  // .page is the scroll container (html/body/#main-area are all overflow:hidden)
+  let lastY=0,ticking=false;
+  function update(){
+    const y=page.scrollTop;
+    const delta=y-lastY;
+    if(y<=10){hero.classList.remove('hero-compact');}
+    else if(delta<-6){hero.classList.remove('hero-compact');}
+    else if(delta>6){hero.classList.add('hero-compact');}
+    if(Math.abs(delta)>2)lastY=y;
+    ticking=false;
+  }
+  function onScroll(){if(!ticking){ticking=true;requestAnimationFrame(update);}}
+  page.addEventListener('scroll',onScroll,{passive:true});
+  // Touch fallback: iOS can suppress scroll events mid-momentum
+  page.addEventListener('touchmove',onScroll,{passive:true});
+  update();
+}
+
+function refreshPortfolioViews(){
+  try{
+    renderPortfolio();renderFilterBar();renderCV();renderCVDocs();
+    renderCVPreview();renderHeroBg();initNoticeTicker();
+  }catch(e){}
+}
+
 // ── INIT ───────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  loadSD();
-  document.getElementById('logo-img').src=LOGO_SRC;
+window.addEventListener('DOMContentLoaded',async()=>{
+  try{ await loadSD(); }catch(e){}
+  const li=document.getElementById('logo-img');if(li)li.src=LOGO_SRC;
   const l2=document.getElementById('logo-img2');if(l2)l2.src=LOGO_SRC;
-  renderPortfolio();renderFilterBar();renderCV();renderCVDocs();renderCVPreview();renderHeroBg();
+  try{
+    renderPortfolio();renderFilterBar();renderCV();renderCVDocs();
+    renderCVPreview();renderHeroBg();initHeroScroll();
+  }catch(e){console.warn('render:',e);}
   const tt=document.getElementById('topbar-title');
-  if(tt)tt.textContent=document.getElementById('portfolio-title')?.textContent||"Daeron's Portfolio";
-  
-  setInterval(updateTimer,1000);
-  initNoticeTicker();
-  initVisitorCount();
-  initIdleSlideshow();
-  // Restore admin session
+  const pt=document.getElementById('portfolio-title');
+  if(tt)tt.textContent=(pt&&pt.textContent)||"Daeron's Portfolio";
+
+  try{ initNoticeTicker(); }catch(e){}
+  try{ initVisitorCount(); }catch(e){}
+  try{ initIdleSlideshow(); }catch(e){}
+
   if(SD.tourOnLoad&&!localStorage.getItem('tf5-tour-done'))setTimeout(startTour,600);
   document.addEventListener('click',e=>{
-    if(!document.getElementById('tools-dropdown-wrap').contains(e.target))hideToolsMenu();
+    const w=document.getElementById('tools-dropdown-wrap');
+    if(w&&!w.contains(e.target))hideToolsMenu();
   });
   // Keyboard shortcut Ctrl+Shift+E to open admin
   document.addEventListener('keydown',e=>{
     if(e.ctrlKey&&e.shiftKey&&e.key==='E'){e.preventDefault();openAdminPanel();}
-    if(e.key==='Escape'){document.getElementById('admin-panel').classList.remove('open');closeTour();}
+    if(e.key==='Escape'){const ap=document.getElementById('admin-panel');if(ap)ap.classList.remove('open');closeTour();}
   });
 });
 
@@ -622,7 +786,7 @@ function showPage(id){
   // Topbar title: show name on portfolio page, tool name otherwise
   const tt=document.getElementById('topbar-title');
   if(tt){
-    if(id==='portfolio')tt.textContent=document.getElementById('portfolio-title')?.textContent||'Portfolio';
+    if(id==='portfolio'){const p=document.getElementById('portfolio-title');tt.textContent=(p&&p.textContent)||'Portfolio';}
     else if(id==='wrkassist')tt.textContent='WRKASSIST';
     else if(id==='refs')tt.textContent='Reference Builder';
     else if(id==='tools')tt.textContent='Tools';
@@ -645,13 +809,25 @@ function renderFilterBar(){
 // ── TOOLS DROPDOWN ────────────────────────────────────────────────────────
 function toggleToolsMenu(){
   const m=document.getElementById('tools-menu');
-  const open=m.style.display!=='none'&&m.style.display!=='';
-  m.style.display=open?'none':'block';
-  document.getElementById('tools-chevron').style.transform=open?'':'rotate(180deg)';
+  const c=document.getElementById('tools-chevron');
+  const b=document.getElementById('tab-tools-btn');
+  if(!m)return;
+  const isOpen=m.classList.contains('open');
+  if(isOpen){hideToolsMenu();return;}
+  m.style.display='block';
+  requestAnimationFrame(()=>m.classList.add('open'));
+  if(c)c.classList.add('open');
+  if(b)b.setAttribute('aria-expanded','true');
 }
 function hideToolsMenu(){
-  document.getElementById('tools-menu').style.display='none';
-  document.getElementById('tools-chevron').style.transform='';
+  const m=document.getElementById('tools-menu');
+  const c=document.getElementById('tools-chevron');
+  const b=document.getElementById('tab-tools-btn');
+  if(!m)return;
+  m.classList.remove('open');
+  if(c)c.classList.remove('open');
+  if(b)b.setAttribute('aria-expanded','false');
+  setTimeout(()=>{if(!m.classList.contains('open'))m.style.display='none';},200);
 }
 
 // ── CV PREVIEW ─────────────────────────────────────────────────────────────
@@ -676,7 +852,16 @@ function renderCVPreview(){
     const doc=SD.cvDocs[0];
     if(dl){dl.href=doc.dataUrl;dl.setAttribute('download',doc.name);}
     if(dlM){dlM.href=doc.dataUrl;dlM.setAttribute('download',doc.name);}
-    renderCVPage(doc.dataUrl,wrap);
+    const isImg=doc.kind==='img'||/^data:image\//.test(doc.dataUrl);
+    if(isImg){
+      wrap.innerHTML='';
+      const img=document.createElement('img');
+      img.src=doc.dataUrl;img.alt=doc.name;
+      img.style.cssText='width:100%;height:auto;display:block;border-radius:6px;';
+      wrap.appendChild(img);
+    } else {
+      renderCVPage(doc.dataUrl,wrap);
+    }
   } else if(SD.cvUrl&&SD.cvUrl!=='#'){
     if(dl)dl.href=SD.cvUrl;
     if(dlM)dlM.href=SD.cvUrl;
@@ -697,11 +882,16 @@ async function renderCVPage(dataUrl,wrap){
     const pdf=await pdfjsLib.getDocument({data:atob(dataUrl.split(',')[1])}).promise;
     const page=await pdf.getPage(1);
     // Render at 1.5 scale — good quality thumbnail
-    const vp=page.getViewport({scale:1.5});
+    // Render at 2x device pixel ratio for sharpness, then let CSS size it
+    const dpr=Math.max(2,window.devicePixelRatio||1);
+    const baseVp=page.getViewport({scale:1});
+    // Target the actual rendered container width so text is legible at 100% zoom
+    const targetW=wrap.clientWidth||340;
+    const scale=(targetW/baseVp.width)*dpr;
+    const vp=page.getViewport({scale});
     const canvas=document.createElement('canvas');
     canvas.width=Math.floor(vp.width);
     canvas.height=Math.floor(vp.height);
-    // width:100% height:auto — CSS scales to fit container, preserves PDF ratio
     canvas.style.width='100%';
     canvas.style.height='auto';
     canvas.style.display='block';
@@ -721,20 +911,31 @@ let _cvPdf=null;let _cvPage=1;let _cvTotalPages=1;
 async function expandCV(){
   const modal=document.getElementById('cv-expand-modal');
   const content=document.getElementById('cv-modal-content');
+  if(!modal||!content)return;
   modal.style.display='flex';
-  content.innerHTML='<div style="text-align:center;padding:2rem;font-size:10px;color:#35505e;font-family:\'DM Mono\',monospace;">Loading…</div>';
-  if(SD.cvDocs&&SD.cvDocs.length>0){
+  const doc=(SD.cvDocs&&SD.cvDocs[0])||null;
+  if(doc){
+    const isImg=doc.kind==='img'||/^data:image\//.test(doc.dataUrl);
+    if(isImg){
+      const pager=document.getElementById('cv-pager');if(pager)pager.style.display='none';
+      const info=document.getElementById('cv-modal-page-info');if(info)info.textContent='CV';
+      content.innerHTML='';
+      const img=document.createElement('img');
+      img.src=doc.dataUrl;img.alt=doc.name;
+      img.style.cssText='width:100%;height:auto;display:block;border-radius:8px;';
+      content.appendChild(img);
+      return;
+    }
+    content.innerHTML='<div style="text-align:center;padding:2rem;font-size:10px;color:#35505e;font-family:\'DM Mono\',monospace;">Loading…</div>';
     try{
-      _cvPdf=await pdfjsLib.getDocument({data:atob(SD.cvDocs[0].dataUrl.split(',')[1])}).promise;
-      _cvTotalPages=_cvPdf.numPages;
-      _cvPage=1;
+      _cvPdf=await pdfjsLib.getDocument({data:atob(doc.dataUrl.split(',')[1])}).promise;
+      _cvTotalPages=_cvPdf.numPages;_cvPage=1;
       await renderCVModalPage();
     }catch(e){
-      console.error('CV expand error:',e);
-      content.innerHTML='<div style="color:#d94030;font-size:10px;font-family:\'DM Mono\',monospace;padding:1rem;">Error loading PDF</div>';
+      content.innerHTML='<div style="color:#d94030;font-size:10px;padding:1rem;">Error loading PDF</div>';
     }
   } else if(SD.cvUrl&&SD.cvUrl!=='#'){
-    content.innerHTML=`<a href="${SD.cvUrl}" target="_blank" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--tp);">Open CV <i class="fas fa-arrow-right" style="font-size:9px;"></i></a>`;
+    content.innerHTML='<a href="'+SD.cvUrl+'" target="_blank" style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--tp);">Open CV</a>';
   } else {
     content.innerHTML='<div style="font-size:10px;color:#35505e;text-align:center;padding:2rem;">No CV uploaded. Add one via Admin.</div>';
   }
@@ -858,7 +1059,7 @@ async function fetchNoticeItems(){
         const d=await r.json();
         const parser=new DOMParser();
         const xml=parser.parseFromString(d.contents||'','text/xml');
-        const title=xml.querySelector('entry title')?.textContent;
+        const te=xml.querySelector('entry title');const title=te&&te.textContent;
         if(title)items.push({icon:'▶',text:'New video: '+title.slice(0,60)});
       }
     }catch(e){}
@@ -872,23 +1073,17 @@ function extractYTChannelId(url){
   if(m)return m[1];
   return url.replace(/.*youtube\.com\/@?/,'').replace(/\/.*/,'');
 }
-function openNoticeBoardSettings(){
-  const src=SD.noticeSources||{};
-  document.getElementById('nb-yt-url').value=src.yt||'';
-  document.getElementById('nb-li-url').value=src.li||'';
-  document.getElementById('nb-custom').value=src.custom||'';
-  document.getElementById('notice-settings-modal').style.display='flex';
-}
+
 function saveNoticeSources(){
   SD.noticeSources={
-    yt:document.getElementById('nb-yt-url').value.trim(),
-    li:document.getElementById('nb-li-url').value.trim(),
-    custom:document.getElementById('nb-custom').value.trim()
+    yt:((document.getElementById('nb-yt-url')||{}).value||'').trim(),
+    li:((document.getElementById('nb-li-url')||{}).value||'').trim(),
+    custom:((document.getElementById('nb-custom')||{}).value||'').trim()
   };
   saveSD();
-  document.getElementById('notice-settings-modal').style.display='none';
   _tickerPos=0;
   initNoticeTicker();
+  adminMsg('Notice board saved');
 }
 
 // ── IDLE SLIDESHOW ─────────────────────────────────────────────────────────
@@ -972,7 +1167,7 @@ function renderPortfolio(){
       <div style="font-size:.78rem;color:#35505e;line-height:1.65;flex:1;margin-bottom:.75rem;">${p.desc}</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.65rem;">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
       <div style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);">${p.video?'Watch video':'View project'} <i class="fas fa-arrow-right" style="font-size:8px;"></i></div>`;
-    d.onclick=()=>p.appLink?window.open('wrkassist.html','_blank'):openProjectModal(p);
+    d.onclick=()=>p.appLink?window.open('out-of-service.html?tool=WRKASSIST','_blank'):openProjectModal(p);
     g.appendChild(d);
   });
   // Add placeholder only for admin sessions
@@ -1055,14 +1250,19 @@ function renderCVDocs(){
 }
 
 function handleCVUpload(event){
-  const file=event.target.files[0];if(!file||!file.name.endsWith('.pdf'))return;
+  const file=event.target.files[0];if(!file)return;
+  const isPdf=/\.pdf$/i.test(file.name)||file.type==='application/pdf';
+  const isImg=/^image\//.test(file.type)||/\.(png|jpe?g|webp)$/i.test(file.name);
+  if(!isPdf&&!isImg){adminMsg('Use a PDF or image file');return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    SD.cvDocs.push({name:file.name,dataUrl:e.target.result});
-    saveSD();renderCVDocs();renderCVPreview();adminMsg('CV uploaded: '+file.name);
+    SD.cvDocs.push({name:file.name,dataUrl:e.target.result,kind:isPdf?'pdf':'img'});
+    saveSD();renderCVDocs();renderCVPreview();
+    adminMsg('CV uploaded: '+file.name);
   };
   reader.readAsDataURL(file);
 }
+
 function removeCVDoc(i){SD.cvDocs.splice(i,1);saveSD();renderCVDocs();}
 
 // ── MODALS ─────────────────────────────────────────────────────────────────
@@ -1109,6 +1309,10 @@ function populateAdmin(){
   const prevWrap=document.getElementById('admin-hero-bg-preview');
   const prevEl=document.getElementById('admin-hero-bg-prev-el');
   if(SD.heroBg&&prevWrap&&prevEl){prevWrap.style.display='block';prevEl.src=SD.heroBg;}
+  const ns=SD.noticeSources||{};
+  const y=document.getElementById('nb-yt-url');if(y)y.value=ns.yt||'';
+  const l=document.getElementById('nb-li-url');if(l)l.value=ns.li||'';
+  const c=document.getElementById('nb-custom');if(c)c.value=ns.custom||'';
   else if(prevWrap){prevWrap.style.display='none';}
   renderAdminProjects();renderAdminLists();renderCVDocs();
 }
