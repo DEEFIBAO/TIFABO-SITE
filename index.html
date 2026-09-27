@@ -300,6 +300,64 @@ canvas{max-height:180px;}
 /* Hero sticks to top of its scroll container so compact state stays visible */
 #port-hero{position:sticky;top:0;z-index:20;background-color:var(--td);}
 #port-hero.hero-compact{box-shadow:0 4px 18px rgba(0,0,0,.35);}
+
+/* ── Admin panel: phone sizing ──────────────────────────────────────────── */
+#admin-panel{
+  height:100dvh;                 /* survives iOS address-bar resize */
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media(max-width:600px){
+  .admin-bar{
+    padding:.55rem .85rem!important;
+    gap:.5rem!important;
+    flex-wrap:nowrap;
+    min-height:48px;
+  }
+  .admin-bar>div:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Close button always reachable, proper tap target */
+  .admin-bar button{
+    min-width:40px;min-height:40px;
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  #admin-msg-slot{
+    font-size:10px!important;
+    max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .admin-body{
+    grid-template-columns:1fr!important;
+    padding:.85rem .85rem 4rem!important;   /* bottom space so last card clears */
+    gap:.85rem!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .admin-card{padding:.9rem!important;border-radius:12px!important;}
+  .admin-card h3{font-size:9px!important;margin-bottom:.6rem!important;}
+  /* Fields full width, no overflow */
+  .admin-card input,.admin-card textarea,.admin-card select{
+    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+    font-size:16px!important;                 /* prevents iOS focus-zoom */
+    padding:.55rem .65rem!important;
+    min-height:42px;
+  }
+  .admin-card textarea{min-height:76px;}
+  .admin-card .afl{font-size:10px!important;margin-bottom:.25rem!important;display:block;}
+  .admin-card .tbtn,.admin-card button{min-height:42px;font-size:12px!important;}
+  /* File inputs overflow their container on iOS without this */
+  .admin-card input[type=file]{
+    font-size:11px!important;padding:.5rem!important;min-height:auto;
+  }
+  /* Repeating list rows stack instead of squashing */
+  .admin-card .arow,.admin-card .alist-item{
+    flex-wrap:wrap!important;gap:.4rem!important;
+  }
+  /* Image/video previews capped so they don't dominate the panel */
+  .admin-card img,.admin-card video{max-height:100px!important;object-fit:cover;}
+}
+@media(max-width:380px){
+  .admin-body{padding:.7rem .7rem 4rem!important;}
+  .admin-card{padding:.75rem!important;}
+}
 </style>
 </head>
 <body>
@@ -692,22 +750,118 @@ let SD={
   experience:[{year:'2023–Present',org:'Studio Name',role:'Junior Designer',desc:'Brand identity, editorial layout, and digital design.'}],
   links:[{label:'LinkedIn',url:'https://linkedin.com',icon:'fa-linkedin'},{label:'Behance',url:'https://behance.net',icon:'fa-behance'},{label:'Email',url:'mailto:hello@example.com',icon:'fa-envelope'}]
 };
-async function loadSD(){
+// ── PERSISTENCE ────────────────────────────────────────────────────────────
+// IndexedDB is used because SD contains base64 images/video and routinely
+// exceeds the ~5MB localStorage cap. localStorage remains a fallback only.
+const DB_NAME='tifabo',DB_STORE='site',DB_KEY='sd';
+let _dbPromise=null;
+
+function openDB(){
+  if(_dbPromise)return _dbPromise;
+  _dbPromise=new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE);
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+  return _dbPromise;
+}
+
+function idbPut(value){
+  return openDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).put(value,DB_KEY);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+    tx.onabort=()=>reject(tx.error||new Error('aborted'));
+  }));
+}
+
+function idbGet(){
+  return openDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readonly');
+    const req=tx.objectStore(DB_STORE).get(DB_KEY);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  }));
+}
+
+// Is a real backend present? Cached after first check.
+let _hasServer=null;
+async function hasServer(){
+  if(_hasServer!==null)return _hasServer;
   try{
     const r=await fetch('/data',{cache:'no-store'});
-    if(r.ok){
-      const d=await r.json();
-      if(d&&Object.keys(d).length){SD={...SD,...d};return;}
+    const ct=(r.headers.get('content-type')||'').toLowerCase();
+    _hasServer=r.ok&&ct.indexOf('application/json')!==-1;
+  }catch(e){_hasServer=false;}
+  return _hasServer;
+}
+
+async function loadSD(){
+  // 1. Server, if one is actually running
+  try{
+    if(await hasServer()){
+      const r=await fetch('/data',{cache:'no-store'});
+      if(r.ok){
+        const d=await r.json();
+        if(d&&Object.keys(d).length){SD={...SD,...d};return;}
+      }
     }
   }catch(e){}
-  try{const s=localStorage.getItem('tf5-sd');if(s)SD={...SD,...JSON.parse(s)};}catch(e){}
-}
-async function saveSD(){
-  try{localStorage.setItem('tf5-sd',JSON.stringify(SD));}catch(e){}
+  // 2. IndexedDB — the real local store
   try{
-    await fetch('/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(SD)});
+    const d=await idbGet();
+    if(d&&Object.keys(d).length){SD={...SD,...d};return;}
+  }catch(e){console.warn('IndexedDB read failed:',e);}
+  // 3. localStorage — legacy/migration only
+  try{
+    const s=localStorage.getItem('tf5-sd');
+    if(s){
+      SD={...SD,...JSON.parse(s)};
+      idbPut(JSON.parse(JSON.stringify(SD))).catch(()=>{});
+    }
   }catch(e){}
+}
+
+async function saveSD(){
+  let savedLocally=false,savedRemote=false,err=null;
+
+  // Primary: IndexedDB (no practical size limit)
+  try{
+    await idbPut(JSON.parse(JSON.stringify(SD)));
+    savedLocally=true;
+  }catch(e){err=e;console.error('IndexedDB save failed:',e);}
+
+  // Secondary: localStorage, best-effort. Expected to fail once media is added.
+  try{localStorage.setItem('tf5-sd',JSON.stringify(SD));}
+  catch(e){/* quota — IndexedDB already holds the real copy */}
+
+  // Server, only if one exists
+  try{
+    if(await hasServer()){
+      const r=await fetch('/data',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(SD)
+      });
+      savedRemote=r.ok;
+    }
+  }catch(e){}
+
   refreshPortfolioViews();
+
+  // Only speak up on failure — callers show their own success messages
+  if(!savedLocally){
+    adminMsg('SAVE FAILED — '+((err&&err.name)||'storage error')+'. Nothing was written.',true);
+    return false;
+  }
+  window._lastSaveSynced=savedRemote;
+  return true;
 }
 
 // ── HERO EXPAND ON SCROLL UP ───────────────────────────────────────────────
@@ -1488,7 +1642,14 @@ function importSite(event){
   };
   reader.readAsText(file);
 }
-function adminMsg(m){const s=document.getElementById('admin-msg-slot');if(!s)return;s.textContent='✓ '+m;setTimeout(()=>{if(s.textContent==='✓ '+m)s.textContent='';},2200);}
+function adminMsg(m,isError){
+  const s=document.getElementById('admin-msg-slot');
+  if(!s){if(isError)alert(m);return;}
+  const txt=(isError?'⚠ ':'✓ ')+m;
+  s.textContent=txt;
+  s.style.color=isError?'#e0705a':'';
+  setTimeout(()=>{if(s.textContent===txt){s.textContent='';s.style.color='';}},isError?6000:2200);
+}
 
 // ── TOUR ───────────────────────────────────────────────────────────────────
 const tourSteps=[
