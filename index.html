@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" id="favicon" href="">
 <title>TIFABO — Portfolio & Tools</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -12,7 +13,7 @@
 <style>
 :root{--tp:#9DB5C5;--ta:#c8dce8;--td:#0f1214;--ts:#161a1d;--tpn:#1c2125;--tb:rgba(157,181,197,0.11);--tr:rgba(157,181,197,0.06);}
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
 body{font-family:Helvetica,Arial,sans-serif;background:var(--td);color:#b8ccd6;display:flex;}
 .mono{font-family:'DM Mono',monospace;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#263038;border-radius:3px;}
@@ -32,7 +33,7 @@ body{font-family:Helvetica,Arial,sans-serif;background:var(--td);color:#b8ccd6;d
 
 /* ── PAGE CONTAINER: only one page visible at a time ── */
 #pages{flex:1;overflow:hidden;position:relative;}
-.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
 .page.active{display:block;}
 
 /* ── COMMON ── */
@@ -359,6 +360,19 @@ canvas{max-height:180px;}
   .admin-body{padding:.7rem .7rem 4rem!important;}
   .admin-card{padding:.75rem!important;}
 }
+
+/* CV page toggle */
+#cv-pagebar button:hover{border-color:var(--tp);}
+#cv-pagebar button:disabled{opacity:.3;cursor:default;pointer-events:none;}
+.cv-dot{width:7px;height:7px;border-radius:50%;background:rgba(157,181,197,.25);cursor:pointer;
+  border:none;padding:0;transition:background .2s,transform .2s;}
+.cv-dot.on{background:var(--tp);transform:scale(1.3);}
+#cv-preview-img-wrap canvas,#cv-preview-img-wrap img{animation:cvFade .3s var(--ease);}
+@keyframes cvFade{from{opacity:0;}to{opacity:1;}}
+@media(max-width:600px){
+  #cv-pagebar button{width:38px;height:38px;font-size:14px;}
+  .cv-dot{width:9px;height:9px;}
+}
 </style>
 </head>
 <body>
@@ -443,6 +457,15 @@ canvas{max-height:180px;}
             <a id="cv-dl-link-main" href="#" download style="font-size:10px;font-family:'DM Mono',monospace;color:var(--tp);border:1px solid var(--tb);background:var(--ts);padding:.35rem .75rem;border-radius:6px;cursor:pointer;text-decoration:none;" onclick="event.stopPropagation();"><i class="fas fa-download" style="margin-right:4px;font-size:9px;"></i>Download</button></a>
           </div>
         </div>
+        <!-- Page toggle -->
+        <div id="cv-pagebar" style="display:none;align-items:center;justify-content:center;gap:.5rem;margin-top:.6rem;">
+          <button id="cv-prev" onclick="cvStep(-1)" aria-label="Previous page"
+            style="width:30px;height:30px;border-radius:7px;border:1px solid var(--tb);background:var(--ts);color:var(--tp);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:border-color .2s,opacity .2s;">&#8592;</button>
+          <div id="cv-dots" style="display:flex;gap:5px;align-items:center;"></div>
+          <button id="cv-next" onclick="cvStep(1)" aria-label="Next page"
+            style="width:30px;height:30px;border-radius:7px;border:1px solid var(--tb);background:var(--ts);color:var(--tp);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:border-color .2s,opacity .2s;">&#8594;</button>
+        </div>
+        <div id="cv-pagelabel" style="display:none;text-align:center;font-size:9px;font-family:'DM Mono',monospace;color:#35505e;margin-top:.35rem;"></div>
         <div id="cv-docs-strip" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;"></div>
       </div>
 
@@ -609,6 +632,12 @@ canvas{max-height:180px;}
         <input id="nb-yt-url" type="text" placeholder="https://youtube.com/@yourchannel" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
         <label class="afl">Notice board — LinkedIn profile URL</label>
         <input id="nb-li-url" type="text" placeholder="https://linkedin.com/in/yourname" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <label class="afl">Notice board — GitHub username</label>
+        <input id="nb-gh-user" type="text" placeholder="DEEFIBAO" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <div style="font-size:9px;color:#35505e;margin-bottom:.5rem;line-height:1.5;">Shows your 3 most recently updated repos. No API key needed.</div>
+        <label class="afl">Notice board — LinkedIn note (optional)</label>
+        <input id="nb-li-note" type="text" placeholder="e.g. Open to graduate roles" style="width:100%;margin-bottom:.25rem;box-sizing:border-box;">
+        <div style="font-size:9px;color:#35505e;margin-bottom:.5rem;line-height:1.5;">LinkedIn has no public feed API, so this shows a link with your own text.</div>
         <label class="afl">Notice board — custom notice</label>
         <input id="nb-custom" type="text" placeholder="e.g. Available for freelance" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
         <button class="tbtn" style="width:100%;padding:.3rem;border-radius:5px;font-size:10px;" onclick="saveNoticeSources()">Save notice board</button>
@@ -740,7 +769,7 @@ let SD={
   cvDocs:[],
   heroBg:'',
   tabs:['Design','Academic','Digital','Branding','Photography','Other'],
-  noticeSources:{yt:'',li:'',custom:''},
+  noticeSources:{yt:'',li:'',custom:'',ghUser:'',liNote:''},
   idleTime:120, // seconds before slideshow starts
   projects:[
     {id:1,title:'Brand Identity System',type:'design',tags:['Branding','Typography','Print'],desc:'Visual identity for a creative studio — logotype, colour palette, typographic hierarchy, and brand guidelines.',link:'#',img:''},
@@ -845,12 +874,14 @@ async function saveSD(){
   // Server, only if one exists
   try{
     if(await hasServer()){
-      const r=await fetch('/data',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(SD)
-      });
+      const hdrs={'Content-Type':'application/json'};
+      if(_adminToken)hdrs['Authorization']='Bearer '+_adminToken;
+      const r=await fetch('/data',{method:'POST',headers:hdrs,body:JSON.stringify(SD)});
       savedRemote=r.ok;
+      if(r.status===401){
+        adminMsg('Session expired — reopen Admin to sign in again',true);
+        _adminToken=null;window._adminUnlocked=false;
+      }
     }
   }catch(e){}
 
@@ -866,6 +897,76 @@ async function saveSD(){
   return true;
 }
 
+
+
+// ── CV PAGE TOGGLE ─────────────────────────────────────────────────────────
+// Works for both multi-page PDFs and multiple uploaded images.
+let _cvPreviewPdf=null,_cvPreviewPage=1,_cvPreviewTotal=1,_cvMode='none';
+
+function cvRenderPageBar(){
+  const bar=document.getElementById('cv-pagebar');
+  const dots=document.getElementById('cv-dots');
+  const label=document.getElementById('cv-pagelabel');
+  if(!bar||!dots)return;
+  if(_cvPreviewTotal<=1){
+    bar.style.display='none';
+    if(label)label.style.display='none';
+    return;
+  }
+  bar.style.display='flex';
+  if(label){
+    label.style.display='block';
+    label.textContent=(_cvMode==='img'?'Image ':'Page ')+_cvPreviewPage+' of '+_cvPreviewTotal;
+  }
+  // Cap dots so a long CV doesn't overflow the column
+  const MAX=8;
+  dots.innerHTML='';
+  if(_cvPreviewTotal<=MAX){
+    for(let i=1;i<=_cvPreviewTotal;i++){
+      const b=document.createElement('button');
+      b.className='cv-dot'+(i===_cvPreviewPage?' on':'');
+      b.setAttribute('aria-label','Page '+i);
+      b.onclick=()=>cvGoto(i);
+      dots.appendChild(b);
+    }
+  }
+  const p=document.getElementById('cv-prev');
+  const n=document.getElementById('cv-next');
+  if(p)p.disabled=_cvPreviewPage<=1;
+  if(n)n.disabled=_cvPreviewPage>=_cvPreviewTotal;
+}
+
+async function cvGoto(n){
+  if(n<1||n>_cvPreviewTotal||n===_cvPreviewPage)return;
+  _cvPreviewPage=n;
+  const wrap=document.getElementById('cv-preview-img-wrap');
+  if(!wrap)return;
+  if(_cvMode==='img'){
+    const doc=SD.cvDocs[n-1];
+    if(!doc)return;
+    wrap.innerHTML='';
+    const img=document.createElement('img');
+    img.src=doc.dataUrl;img.alt=doc.name||'';
+    img.style.cssText='width:100%;height:auto;display:block;border-radius:6px;';
+    wrap.appendChild(img);
+  } else if(_cvMode==='pdf'&&_cvPreviewPdf){
+    try{
+      const page=await _cvPreviewPdf.getPage(n);
+      const dpr=Math.max(2,window.devicePixelRatio||1);
+      const base=page.getViewport({scale:1});
+      const targetW=wrap.clientWidth||340;
+      const vp=page.getViewport({scale:(targetW/base.width)*dpr});
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.floor(vp.width);canvas.height=Math.floor(vp.height);
+      canvas.style.width='100%';canvas.style.height='auto';canvas.style.display='block';
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+      wrap.innerHTML='';wrap.appendChild(canvas);
+    }catch(e){console.warn('CV page render:',e);}
+  }
+  cvRenderPageBar();
+}
+
+function cvStep(d){ cvGoto(_cvPreviewPage+d); }
 
 // ── LIVE SYNC ──────────────────────────────────────────────────────────────
 // Polls the server for content changed on another device. Only runs when a
@@ -965,6 +1066,15 @@ function refreshPortfolioViews(){
 window.addEventListener('DOMContentLoaded',async()=>{
   // Security: admin is always closed on load — a session flag never re-opens it
   (function(){
+    window._adminUnlocked=false;
+    try{sessionStorage.removeItem('tf5-admin');}catch(e){}
+    // Strip any admin-ish hash/query so a shared link can never deep-link in
+    try{
+      const h=(location.hash||'').toLowerCase();
+      if(h.indexOf('admin')!==-1||h.indexOf('edit')!==-1){
+        history.replaceState(null,'',location.pathname+location.search);
+      }
+    }catch(e){}
     const p=document.getElementById('admin-panel');
     if(p){p.classList.remove('open');p.setAttribute('hidden','');p.style.display='none';p.style.visibility='hidden';}
     const m=document.getElementById('admin-auth-modal');
@@ -972,6 +1082,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   })();
   try{ await loadSD(); }catch(e){}
   const li=document.getElementById('logo-img');if(li)li.src=LOGO_SRC;
+  const fav=document.getElementById('favicon');if(fav)fav.href=LOGO_SRC;
   const l2=document.getElementById('logo-img2');if(l2)l2.src=LOGO_SRC;
   try{
     renderPortfolio();renderFilterBar();renderCV();renderCVDocs();
@@ -993,8 +1104,16 @@ window.addEventListener('DOMContentLoaded',async()=>{
   });
   // Keyboard shortcut Ctrl+Shift+E to open admin
   document.addEventListener('keydown',e=>{
-    if(e.ctrlKey&&e.shiftKey&&e.key==='E'){e.preventDefault();openAdminPanel();}
-    if(e.key==='Escape'){const ap=document.getElementById('admin-panel');if(ap)ap.classList.remove('open');closeTour();}
+    if(e.ctrlKey&&e.shiftKey&&(e.key==='E'||e.key==='e')){e.preventDefault();openAdminPanel();}
+    if(e.key==='Escape'){
+      const ap=document.getElementById('admin-panel');
+      if(ap&&ap.classList.contains('open')){closeAdminPanel();}
+      else{
+        const am=document.getElementById('admin-auth-modal');
+        if(am&&am.classList.contains('open'))closeModal('admin-auth-modal');
+      }
+      closeTour();
+    }
   });
 });
 
@@ -1075,34 +1194,55 @@ function renderHeroBg(){
 function renderCVPreview(){
   const wrap=document.getElementById('cv-preview-img-wrap');
   if(!wrap)return;
-  const dl=document.getElementById('cv-dl-link-main');
-  const dlM=document.getElementById('cv-dl-link-modal');
-  if(SD.cvDocs&&SD.cvDocs.length>0){
-    const doc=SD.cvDocs[0];
-    if(dl){dl.href=doc.dataUrl;dl.setAttribute('download',doc.name);}
-    if(dlM){dlM.href=doc.dataUrl;dlM.setAttribute('download',doc.name);}
-    const isImg=doc.kind==='img'||/^data:image\//.test(doc.dataUrl);
-    if(isImg){
+  const dlMain=document.getElementById('cv-dl-link-main');
+  const dlModal=document.getElementById('cv-dl-link-modal');
+  const docs=SD.cvDocs||[];
+
+  _cvPreviewPdf=null;_cvPreviewPage=1;_cvPreviewTotal=1;_cvMode='none';
+
+  if(docs.length>0){
+    const first=docs[0];
+    if(dlMain){dlMain.href=first.dataUrl;dlMain.setAttribute('download',first.name);}
+    if(dlModal){dlModal.href=first.dataUrl;dlModal.setAttribute('download',first.name);}
+
+    const allImages=docs.every(function(d){
+      return d.kind==='img'||/^data:image\//.test(d.dataUrl);
+    });
+
+    if(allImages){
+      // Multiple images = multiple "pages"
+      _cvMode='img';
+      _cvPreviewTotal=docs.length;
       wrap.innerHTML='';
       const img=document.createElement('img');
-      img.src=doc.dataUrl;img.alt=doc.name;
+      img.src=first.dataUrl;img.alt=first.name||'';
       img.style.cssText='width:100%;height:auto;display:block;border-radius:6px;';
       wrap.appendChild(img);
+      cvRenderPageBar();
     } else {
-      renderCVPage(doc.dataUrl,wrap);
+      // PDF — page count comes from the document itself
+      _cvMode='pdf';
+      renderCVPage(first.dataUrl,wrap);
+      (async function(){
+        try{
+          _cvPreviewPdf=await pdfjsLib.getDocument({data:atob(first.dataUrl.split(',')[1])}).promise;
+          _cvPreviewTotal=_cvPreviewPdf.numPages;
+          cvRenderPageBar();
+        }catch(e){cvRenderPageBar();}
+      })();
     }
   } else if(SD.cvUrl&&SD.cvUrl!=='#'){
-    if(dl)dl.href=SD.cvUrl;
-    if(dlM)dlM.href=SD.cvUrl;
-    wrap.innerHTML=`<div style="text-align:center;color:#35505e;padding:1.5rem;">
-      <i class="fas fa-external-link-alt" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>
-      <div style="font-size:9px;font-family:'DM Mono',monospace;">CV linked externally</div>
-    </div>`;
+    if(dlMain)dlMain.href=SD.cvUrl;
+    if(dlModal)dlModal.href=SD.cvUrl;
+    wrap.innerHTML='<div style="text-align:center;color:#35505e;padding:1.5rem;">'+
+      '<i class="fas fa-external-link-alt" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>'+
+      '<div style="font-size:9px;font-family:\'DM Mono\',monospace;">CV linked externally</div></div>';
+    cvRenderPageBar();
   } else {
-    wrap.innerHTML=`<div style="text-align:center;color:#263038;padding:1.5rem;">
-      <i class="fas fa-file-pdf" style="font-size:2rem;display:block;margin-bottom:.5rem;color:#35505e;"></i>
-      <div style="font-size:9px;font-family:'DM Mono',monospace;">No CV uploaded</div>
-    </div>`;
+    wrap.innerHTML='<div style="text-align:center;color:#263038;padding:1.5rem;">'+
+      '<i class="fas fa-file-pdf" style="font-size:2rem;display:block;margin-bottom:.5rem;color:#35505e;"></i>'+
+      '<div style="font-size:9px;font-family:\'DM Mono\',monospace;">No CV uploaded</div></div>';
+    cvRenderPageBar();
   }
 }
 
@@ -1249,19 +1389,37 @@ function initVisitorCount(){
 // ── NOTICE TICKER ──────────────────────────────────────────────────────────
 let _tickerInterval=null;
 let _tickerPos=0;
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 async function initNoticeTicker(){
-  const ticker=document.getElementById('notice-ticker');if(!ticker)return;
+  const ticker=document.getElementById('notice-ticker');
+  if(!ticker)return;
   const items=await fetchNoticeItems();
   if(!items.length){
-    ticker.innerHTML=`<span style="font-size:10px;font-family:'DM Mono',monospace;color:#263038;">No updates yet — add sources via the + button</span>`;
+    ticker.innerHTML='<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:#263038;">No updates yet</span>';
     return;
   }
-  // Duplicate for seamless loop
-  const all=[...items,...items];
-  ticker.innerHTML=all.map(i=>`<span style="font-size:10px;font-family:'DM Mono',monospace;color:#507080;flex-shrink:0;">${i.icon} ${i.text}</span>`).join('<span style="color:#1c2530;padding:0 8px;">·</span>');
+  const render=function(i){
+    const txt=esc(i.text);
+    const body='<span style="color:var(--tp);margin-right:5px;">'+i.icon+'</span>'+txt;
+    if(i.url){
+      return '<a href="'+i.url+'" target="_blank" rel="noopener noreferrer" '+
+        'style="font-size:10px;font-family:\'DM Mono\',monospace;color:#507080;flex-shrink:0;'+
+        'text-decoration:none;transition:color .2s;" '+
+        'onmouseover="this.style.color=\'var(--tp)\'" '+
+        'onmouseout="this.style.color=\'#507080\'">'+body+'</a>';
+    }
+    return '<span style="font-size:10px;font-family:\'DM Mono\',monospace;color:#507080;flex-shrink:0;">'+body+'</span>';
+  };
+  const sep='<span style="color:#1c2530;padding:0 10px;flex-shrink:0;">·</span>';
+  const all=items.concat(items);
+  ticker.innerHTML=all.map(render).join(sep);
   startTicker();
-  document.getElementById('notice-outer').addEventListener('mouseenter',()=>clearInterval(_tickerInterval));
-  document.getElementById('notice-outer').addEventListener('mouseleave',startTicker);
+  const outer=document.getElementById('notice-outer');
+  if(outer){
+    outer.addEventListener('mouseenter',function(){clearInterval(_tickerInterval);});
+    outer.addEventListener('mouseleave',startTicker);
+  }
 }
 function startTicker(){
   clearInterval(_tickerInterval);
@@ -1276,26 +1434,94 @@ function startTicker(){
 async function fetchNoticeItems(){
   const items=[];
   const src=SD.noticeSources||{};
+
+  // 1. Manual notice — always first
   if(src.custom&&src.custom.trim())items.push({icon:'→',text:src.custom.trim()});
-  // YouTube: use noembed to get latest video title (public, no API key)
-  if(src.yt&&src.yt.trim()){
+
+  const server=await hasServer();
+
+  // 2. GitHub — recent repo activity. Needs no API key.
+  if(src.gh!==false){
     try{
-      const channelId=src.yt.trim();
-      // Fetch channel RSS via allorigins (no API key needed for RSS)
-      const rssUrl=`https://www.youtube.com/feeds/videos.xml?channel_id=${extractYTChannelId(channelId)}`;
-      const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`);
-      if(r.ok){
-        const d=await r.json();
-        const parser=new DOMParser();
-        const xml=parser.parseFromString(d.contents||'','text/xml');
-        const te=xml.querySelector('entry title');const title=te&&te.textContent;
-        if(title)items.push({icon:'▶',text:'New video: '+title.slice(0,60)});
+      let repos=null;
+      if(server){
+        const r=await fetch('/api/github/repos');
+        if(r.ok)repos=await r.json();
+      } else if(src.ghUser&&src.ghUser.trim()){
+        const u=src.ghUser.trim().replace(/^@/,'');
+        const r=await fetch('https://api.github.com/users/'+encodeURIComponent(u)+'/repos?sort=updated&per_page=5');
+        if(r.ok)repos=await r.json();
+      }
+      if(Array.isArray(repos)){
+        repos.slice(0,3).forEach(function(repo){
+          if(!repo||!repo.name)return;
+          const when=repo.pushed_at?relTime(repo.pushed_at):'';
+          items.push({
+            icon:'◆',
+            text:'Updated '+repo.name+(when?' · '+when:''),
+            url:repo.html_url||''
+          });
+        });
       }
     }catch(e){}
   }
-  if(src.li&&src.li.trim())items.push({icon:'in',text:'LinkedIn: '+src.li.replace('https://linkedin.com/in/','').replace(/\//,'')});
+
+  // 3. YouTube — channel RSS, no API key required
+  if(src.yt&&src.yt.trim()){
+    try{
+      const rssUrl='https://www.youtube.com/feeds/videos.xml?channel_id='+extractYTChannelId(src.yt.trim());
+      const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(rssUrl));
+      if(r.ok){
+        const d=await r.json();
+        const xml=new DOMParser().parseFromString(d.contents||'','text/xml');
+        const entries=xml.querySelectorAll('entry');
+        for(let k=0;k<Math.min(2,entries.length);k++){
+          const te=entries[k].querySelector('title');
+          const le=entries[k].querySelector('link');
+          const pe=entries[k].querySelector('published');
+          if(te&&te.textContent){
+            items.push({
+              icon:'▶',
+              text:'New video: '+te.textContent.slice(0,60)+(pe?' · '+relTime(pe.textContent):''),
+              url:le?le.getAttribute('href'):''
+            });
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  // 4. LinkedIn — no public feed API exists, so this links to the profile.
+  //    LinkedIn's API requires app review and only exposes the authenticated
+  //    user's own posts, so an automatic feed isn't possible here.
+  if(src.li&&src.li.trim()){
+    const handle=src.li.trim().replace(/\/+$/,'').split('/').pop();
+    items.push({
+      icon:'in',
+      text:(src.liNote&&src.liNote.trim())?src.liNote.trim():('LinkedIn · '+handle),
+      url:src.li.trim()
+    });
+  }
+
   return items;
 }
+
+// "3 days ago" style formatting for feed timestamps
+function relTime(iso){
+  try{
+    const then=new Date(iso).getTime();
+    if(isNaN(then))return '';
+    const mins=Math.floor((Date.now()-then)/60000);
+    if(mins<60)return mins<=1?'just now':mins+'m ago';
+    const hrs=Math.floor(mins/60);
+    if(hrs<24)return hrs+'h ago';
+    const days=Math.floor(hrs/24);
+    if(days<30)return days+'d ago';
+    const months=Math.floor(days/30);
+    return months+'mo ago';
+  }catch(e){return '';}
+}
+
 function extractYTChannelId(url){
   // Handle @handle vs /channel/ID
   const m=url.match(/channel\/([A-Za-z0-9_-]+)/);
@@ -1307,7 +1533,9 @@ function saveNoticeSources(){
   SD.noticeSources={
     yt:((document.getElementById('nb-yt-url')||{}).value||'').trim(),
     li:((document.getElementById('nb-li-url')||{}).value||'').trim(),
-    custom:((document.getElementById('nb-custom')||{}).value||'').trim()
+    custom:((document.getElementById('nb-custom')||{}).value||'').trim(),
+    ghUser:((document.getElementById('nb-gh-user')||{}).value||'').trim(),
+    liNote:((document.getElementById('nb-li-note')||{}).value||'').trim()
   };
   saveSD();
   _tickerPos=0;
@@ -1400,7 +1628,7 @@ function renderPortfolio(){
     g.appendChild(d);
   });
   // Add placeholder only for admin sessions
-  if(sessionStorage.getItem('tf5-admin')==='1'){
+  if(window._adminUnlocked===true){
     const ph=document.createElement('div');
     ph.className='pcrd';ph.dataset.type='placeholder';
     ph.style.cssText='border:1px dashed rgba(157,181,197,.08);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;color:#263038;cursor:pointer;min-width:260px;max-width:280px;flex-shrink:0;';
@@ -1508,27 +1736,69 @@ function closeModal(id){
 
 
 // ── ADMIN ──────────────────────────────────────────────────────────────────
-const ADMIN_PWD='tifabo2025';
-let projImgBase64='';
-let projVidBase64='';
+// ── AUTH ───────────────────────────────────────────────────────────────────
+// The password is never stored in this file. It is verified by proxy.js,
+// which holds it in .env and returns a short-lived signed token.
+window._adminUnlocked=false;
+let _adminToken=null;
 
 function openAdminPanel(){
-  document.getElementById('admin-pwd-input').value='';
-  document.getElementById('admin-pwd-err').textContent='';
-  openModal('admin-auth-modal');
-}
-function closeAdminPanel(){
-  const p=document.getElementById('admin-panel');
-  if(!p)return;
-  p.classList.remove('open');
-  p.setAttribute('hidden','');
-  p.setAttribute('aria-hidden','true');
-  p.style.display='none';
-  p.style.visibility='hidden';
-}
-function checkAdminPwd(){
   const inp=document.getElementById('admin-pwd-input');
-  if(inp&&inp.value===ADMIN_PWD){
+  const err=document.getElementById('admin-pwd-err');
+  if(inp)inp.value='';
+  if(err)err.textContent='';
+  openModal('admin-auth-modal');
+  setTimeout(()=>{if(inp)inp.focus();},120);
+}
+
+// Used only when no server is running (e.g. GitHub Pages). Readable in page
+// source — not real security. Run proxy.js with ADMIN_PASSWORD for that.
+const FALLBACK_PWD='tifabo2025';
+
+async function checkAdminPwd(){
+  const inp=document.getElementById('admin-pwd-input');
+  const errEl=document.getElementById('admin-pwd-err');
+  if(!inp)return;
+  const pwd=inp.value;
+  if(errEl)errEl.textContent='';
+
+  let authed=false;
+
+  // Preferred: server-side check. The password is verified on the server and
+  // never compared in browser code.
+  if(await hasServer()){
+    try{
+      const r=await fetch('/api/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:pwd})
+      });
+      const d=await r.json().catch(()=>({}));
+      if(r.ok&&d.ok&&d.token){
+        window._authToken=d.token;
+        try{sessionStorage.setItem('tf5-token',d.token);}catch(e){}
+        authed=true;
+      } else {
+        if(errEl)errEl.textContent=d.error||'Incorrect password.';
+        inp.value='';
+        return;
+      }
+    }catch(e){
+      if(errEl)errEl.textContent='Could not reach server.';
+      inp.value='';
+      return;
+    }
+  } else {
+    // Static hosting only. This check is cosmetic — see FALLBACK_PWD note.
+    authed=(pwd===FALLBACK_PWD);
+    if(!authed){
+      if(errEl)errEl.textContent='Incorrect password.';
+      inp.value='';
+      return;
+    }
+  }
+
+  if(authed){
     closeModal('admin-auth-modal');
     populateAdmin();
     const p=document.getElementById('admin-panel');
@@ -1537,14 +1807,43 @@ function checkAdminPwd(){
     p.style.visibility='visible';
     p.style.display='flex';
     p.classList.add('open');
+    window._adminUnlocked=true;
     sessionStorage.setItem('tf5-admin','1');
-    if(inp)inp.value='';
-  } else {
-    const e=document.getElementById('admin-pwd-err');
-    if(e)e.textContent='Incorrect password.';
-    if(inp)inp.value='';
+    inp.value='';
+    refreshPortfolioViews();
   }
 }
+
+function closeAdminPanel(){
+  const p=document.getElementById('admin-panel');
+  if(p){
+    p.classList.remove('open');
+    p.setAttribute('hidden','');
+    p.setAttribute('aria-hidden','true');
+    p.style.display='none';
+    p.style.visibility='hidden';
+  }
+  // Drop the session
+  window._adminUnlocked=false;
+  try{
+    const tok=window._authToken||sessionStorage.getItem('tf5-token');
+    if(tok)fetch('/api/logout',{method:'POST',headers:{'X-Auth-Token':tok}}).catch(function(){});
+  }catch(e){}
+  window._authToken=null;
+  try{
+    sessionStorage.removeItem('tf5-admin');
+    sessionStorage.removeItem('tf5-token');
+  }catch(e){}
+  // Re-render so admin-only bits (Add project) disappear
+  try{ renderPortfolio(); }catch(e){}
+}
+
+function adminLogout(){
+  closeAdminPanel();
+  const eb=document.getElementById('edit-site-btn');
+  if(eb){eb.removeAttribute('hidden');eb.style.display='inline-flex';}
+}
+
 
 
 function populateAdmin(){
@@ -1560,6 +1859,8 @@ function populateAdmin(){
   const y=document.getElementById('nb-yt-url');if(y)y.value=ns.yt||'';
   const l=document.getElementById('nb-li-url');if(l)l.value=ns.li||'';
   const c=document.getElementById('nb-custom');if(c)c.value=ns.custom||'';
+  const g=document.getElementById('nb-gh-user');if(g)g.value=ns.ghUser||'';
+  const ln=document.getElementById('nb-li-note');if(ln)ln.value=ns.liNote||'';
   else if(prevWrap){prevWrap.style.display='none';}
   renderAdminProjects();renderAdminLists();renderCVDocs();
 }
@@ -1752,7 +2053,7 @@ const tourSteps=[
   {el:'tour-refs',title:'Reference Builder',desc:'Paste any URL to generate a Harvard citation instantly. Alphabetically sorted, with in-text citations, saved groups, and date parsing.',pos:'bottom',page:'tools'},
   {el:'tab-refs',title:'Adding citations',desc:'Go here to manage your reference list. Paste a URL, press Add, and your citation appears immediately — sorted and ready to copy.',pos:'bottom',page:'refs'},
   {el:'wrk-sidebar',title:'WRKASSIST sidebar',desc:'After importing your PDF brief, the sidebar shows each criterion with its keyword coverage, status, and suggested key terms to address.',pos:'right',page:'wrkassist'},
-  {el:'tab-portfolio',title:"You're all set",desc:"Tour complete. Use the discreet Edit button at the bottom of Links & Contact to customise your portfolio. Admin password: tifabo2025",pos:'bottom',page:'portfolio'}
+  {el:'tab-portfolio',title:"You're all set",desc:"Tour complete. Use the discreet Edit button at the bottom of Links & Contact to customise your portfolio.",pos:'bottom',page:'portfolio'}
 ];
 let tourStep=0;
 function startTour(){tourStep=0;document.getElementById('tour-overlay').classList.add('active');renderTourStep(true);}
