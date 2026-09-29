@@ -780,6 +780,10 @@ let SD={
   experience:[{year:'2023–Present',org:'Studio Name',role:'Junior Designer',desc:'Brand identity, editorial layout, and digital design.'}],
   links:[{label:'LinkedIn',url:'https://linkedin.com',icon:'fa-linkedin'},{label:'Behance',url:'https://behance.net',icon:'fa-behance'},{label:'Email',url:'mailto:hello@example.com',icon:'fa-envelope'}]
 };
+// Media staged for the project being added (set by the file inputs below)
+var projImgBase64='';
+var projVidBase64='';
+
 // ── PERSISTENCE ────────────────────────────────────────────────────────────
 // IndexedDB is used because SD contains base64 images/video and routinely
 // exceeds the ~5MB localStorage cap. localStorage remains a fallback only.
@@ -1950,31 +1954,144 @@ function saveAdminIdentity(){
   saveSD();renderCV();renderFilterBar();renderHeroBg();adminMsg('Identity saved');
 }
 function addAdminProject(){
-  const t=document.getElementById('proj-title-inp').value.trim();if(!t)return;
+  const g=function(id){return document.getElementById(id);};
+  const titleEl=g('proj-title-inp');
+  if(!titleEl){adminMsg('Form not found — reload the page',true);return;}
+
+  const t=(titleEl.value||'').trim();
+  if(!t){
+    adminMsg('Project needs a title',true);
+    titleEl.focus();
+    titleEl.style.borderColor='#d9542b';
+    setTimeout(function(){titleEl.style.borderColor='';},2000);
+    return;
+  }
+
+  const val=function(id){const e=g(id);return e?(e.value||'').trim():'';};
+
+  if(!Array.isArray(SD.projects))SD.projects=[];
+
   SD.projects.push({
-    id:Date.now(),title:t,
-    type:document.getElementById('proj-type-inp').value.trim()||'other',
-    tags:document.getElementById('proj-tags-inp').value.split(',').map(s=>s.trim()).filter(Boolean),
-    desc:document.getElementById('proj-desc-inp').value.trim(),
-    link:document.getElementById('proj-link-inp').value.trim()||'#',
+    id:Date.now(),
+    title:t,
+    type:val('proj-type-inp')||'other',
+    tags:val('proj-tags-inp').split(',').map(function(s){return s.trim();}).filter(Boolean),
+    desc:val('proj-desc-inp'),
+    link:val('proj-link-inp')||'#',
     img:projImgBase64||'',
     video:projVidBase64||''
   });
-  saveSD();renderPortfolio();renderAdminProjects();
-  ['proj-title-inp','proj-type-inp','proj-tags-inp','proj-desc-inp','proj-link-inp'].forEach(id=>document.getElementById(id).value='');
+
+  saveSD();
+  try{renderPortfolio();}catch(e){}
+  try{renderFilterBar();}catch(e){}
+  try{renderAdminProjects();}catch(e){}
+
+  ['proj-title-inp','proj-type-inp','proj-tags-inp','proj-desc-inp','proj-link-inp']
+    .forEach(function(id){const e=g(id);if(e)e.value='';});
   projImgBase64='';projVidBase64='';
-  document.getElementById('proj-img-preview').style.display='none';
-  document.getElementById('proj-vid-preview').style.display='none';
-  adminMsg('Project added');
+  ['proj-img-inp','proj-vid-inp'].forEach(function(id){const e=g(id);if(e)e.value='';});
+  const ip=g('proj-img-preview');if(ip)ip.style.display='none';
+  const vp=g('proj-vid-preview');if(vp)vp.style.display='none';
+
+  adminMsg('Project added: '+t);
 }
-function removeProject(i){SD.projects.splice(i,1);saveSD();renderPortfolio();renderAdminProjects();}
-function addEdu(){const y=document.getElementById('edu-year').value.trim(),ins=document.getElementById('edu-inst').value.trim(),q=document.getElementById('edu-qual').value.trim();if(!y||!ins||!q)return;SD.education.push({year:y,institution:ins,qualification:q});saveSD();renderCV();renderAdminLists();['edu-year','edu-inst','edu-qual'].forEach(id=>document.getElementById(id).value='');}
-function removeEdu(i){SD.education.splice(i,1);saveSD();renderCV();renderAdminLists();}
-function addExp(){const y=document.getElementById('exp-year').value.trim(),o=document.getElementById('exp-org').value.trim(),r=document.getElementById('exp-role').value.trim(),d=document.getElementById('exp-desc').value.trim();if(!y||!o||!r)return;SD.experience.push({year:y,org:o,role:r,desc:d});saveSD();renderCV();renderAdminLists();['exp-year','exp-org','exp-role','exp-desc'].forEach(id=>document.getElementById(id).value='');}
-function removeExp(i){SD.experience.splice(i,1);saveSD();renderCV();renderAdminLists();}
-function addLink(){const l=document.getElementById('link-label').value.trim(),u=document.getElementById('link-url').value.trim(),ic=document.getElementById('link-icon').value.trim()||'fa-link';if(!l||!u)return;SD.links.push({label:l,url:u,icon:ic});saveSD();renderCV();renderAdminLists();['link-label','link-url','link-icon'].forEach(id=>document.getElementById(id).value='');}
-function removeLink(i){SD.links.splice(i,1);saveSD();renderCV();renderAdminLists();}
-function saveSiteSettings(){SD.tourOnLoad=document.getElementById('admin-tour-on').checked;saveSD();adminMsg('Settings saved');}
+// ── Admin list helpers ─────────────────────────────────────────────────────
+function _v(id){const e=document.getElementById(id);return e?(e.value||'').trim():'';}
+function _clear(ids){ids.forEach(function(id){const e=document.getElementById(id);if(e)e.value='';});}
+function _flag(id){
+  const e=document.getElementById(id);
+  if(!e)return;
+  e.focus();
+  e.style.borderColor='#d9542b';
+  setTimeout(function(){e.style.borderColor='';},2000);
+}
+function _redrawCV(){
+  try{renderCV();}catch(e){}
+  try{renderAdminLists();}catch(e){}
+}
+
+function removeProject(i){
+  if(!Array.isArray(SD.projects)||!SD.projects[i])return;
+  const name=SD.projects[i].title||'this project';
+  if(!confirm('Remove "'+name+'"?'))return;
+  SD.projects.splice(i,1);
+  saveSD();
+  try{renderPortfolio();}catch(e){}
+  try{renderFilterBar();}catch(e){}
+  try{renderAdminProjects();}catch(e){}
+  adminMsg('Removed: '+name);
+}
+
+function addEdu(){
+  const y=_v('edu-year'),ins=_v('edu-inst'),q=_v('edu-qual');
+  if(!y){adminMsg('Education needs a year',true);_flag('edu-year');return;}
+  if(!ins){adminMsg('Education needs an institution',true);_flag('edu-inst');return;}
+  if(!q){adminMsg('Education needs a qualification',true);_flag('edu-qual');return;}
+  if(!Array.isArray(SD.education))SD.education=[];
+  SD.education.push({year:y,institution:ins,qualification:q});
+  saveSD();_redrawCV();
+  _clear(['edu-year','edu-inst','edu-qual']);
+  adminMsg('Education added');
+}
+
+function removeEdu(i){
+  if(!Array.isArray(SD.education)||!SD.education[i])return;
+  if(!confirm('Remove this education entry?'))return;
+  SD.education.splice(i,1);
+  saveSD();_redrawCV();
+  adminMsg('Education removed');
+}
+
+function addExp(){
+  const y=_v('exp-year'),o=_v('exp-org'),r=_v('exp-role'),d=_v('exp-desc');
+  if(!y){adminMsg('Experience needs a year',true);_flag('exp-year');return;}
+  if(!o){adminMsg('Experience needs an organisation',true);_flag('exp-org');return;}
+  if(!r){adminMsg('Experience needs a role',true);_flag('exp-role');return;}
+  if(!Array.isArray(SD.experience))SD.experience=[];
+  SD.experience.push({year:y,org:o,role:r,desc:d});
+  saveSD();_redrawCV();
+  _clear(['exp-year','exp-org','exp-role','exp-desc']);
+  adminMsg('Experience added');
+}
+
+function removeExp(i){
+  if(!Array.isArray(SD.experience)||!SD.experience[i])return;
+  if(!confirm('Remove this experience entry?'))return;
+  SD.experience.splice(i,1);
+  saveSD();_redrawCV();
+  adminMsg('Experience removed');
+}
+
+function addLink(){
+  const l=_v('link-label'),u=_v('link-url'),ic=_v('link-icon')||'fa-link';
+  if(!l){adminMsg('Link needs a label',true);_flag('link-label');return;}
+  if(!u){adminMsg('Link needs a URL',true);_flag('link-url');return;}
+  // Accept bare domains and mailto: without forcing the user to type https://
+  let url=u;
+  if(!/^(https?:\/\/|mailto:|tel:)/i.test(url))url='https://'+url;
+  if(!Array.isArray(SD.links))SD.links=[];
+  SD.links.push({label:l,url:url,icon:ic});
+  saveSD();_redrawCV();
+  _clear(['link-label','link-url','link-icon']);
+  adminMsg('Link added');
+}
+
+function removeLink(i){
+  if(!Array.isArray(SD.links)||!SD.links[i])return;
+  const name=SD.links[i].label||'this link';
+  if(!confirm('Remove "'+name+'"?'))return;
+  SD.links.splice(i,1);
+  saveSD();_redrawCV();
+  adminMsg('Removed: '+name);
+}
+
+function saveSiteSettings(){
+  const t=document.getElementById('admin-tour-on');
+  if(t)SD.tourOnLoad=t.checked;
+  saveSD();
+  adminMsg('Settings saved');
+}
 
 // ── EXPORT / IMPORT SITE ──────────────────────────────────────────────────
 function exportSite(){
