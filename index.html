@@ -129,7 +129,7 @@ input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;b
 #admin-panel[hidden]{display:none!important;}
 #admin-panel.open{display:flex!important;visibility:visible!important;}
 .admin-bar{background:#090c0e;border-bottom:1px solid var(--tb);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
-.admin-body{flex:1;overflow-y:auto;padding:1.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;align-content:start;}
+.admin-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;align-content:start;}
 .admin-card{background:var(--ts);border:1px solid var(--tb);border-radius:10px;padding:1rem;}
 .admin-card h3{font-size:9px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.14em;margin-bottom:.75rem;}
 .afl{font-size:9px;font-family:'DM Mono',monospace;color:#304050;display:block;margin-bottom:3px;}
@@ -149,6 +149,7 @@ input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;b
   #top-bar{overflow:visible;}
   .ref-layout{grid-template-columns:1fr!important;}
   .admin-body{grid-template-columns:1fr 1fr!important;}
+  .admin-body>*{min-width:0!important;}
   .port-grid{grid-template-columns:1fr 1fr!important;}
   .dash-stats-grid{grid-template-columns:1fr 1fr!important;}
   .dash-charts-grid{grid-template-columns:1fr!important;}
@@ -186,6 +187,10 @@ input[type=range]::-webkit-slider-runnable-track{height:4px;background:#263038;b
 }
 @media(max-width:600px){
   .admin-body{grid-template-columns:1fr!important;}
+  /* An inline grid-column:span 2 would force a phantom 2nd column here,
+     pushing card contents (incl. the Add project button) off-screen. */
+  .admin-body>*{grid-column:auto!important;grid-column-end:auto!important;min-width:0!important;}
+  .admin-card{max-width:100%!important;overflow-x:hidden;}
   .tools-grid{grid-template-columns:1fr!important;}
   .port-grid{grid-template-columns:1fr!important;}
   #wrk-shell{flex-direction:column;}
@@ -334,6 +339,9 @@ canvas{max-height:180px;}
     -webkit-overflow-scrolling:touch;
   }
   .admin-card{padding:.9rem!important;border-radius:12px!important;}
+  /* Field pairs inside a card stack on phones */
+  .admin-card div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+  .admin-card div[style*="grid-template-columns:repeat(2"]{grid-template-columns:1fr!important;}
   .admin-card h3{font-size:9px!important;margin-bottom:.6rem!important;}
   /* Fields full width, no overflow */
   .admin-card input,.admin-card textarea,.admin-card select{
@@ -620,7 +628,7 @@ canvas{max-height:180px;}
       <h3>IDENTITY</h3>
       <label class="afl">Your name</label><input type="text" id="admin-name" placeholder="Your Name" style="margin-bottom:.5rem;">
       <label class="afl">CV download URL</label><input type="text" id="admin-cv-url" placeholder="https://..." style="margin-bottom:.5rem;">
-      <label class="afl">Portfolio tabs (comma-separated)</label><input type="text" id="admin-tabs-inp" placeholder="Design, Academic, Digital, Branding" style="margin-bottom:.5rem;">
+      <label class="afl">Portfolio tabs (comma-separated)</label><input type="text" id="admin-tabs-inp" placeholder="Design, Academic, Digital, Branding" style="margin-bottom:.5rem;" oninput="previewTabOptions(this.value)">
       <label class="afl">Hero background image</label>
       <input type="file" id="admin-hero-bg-inp" accept="image/*" style="background:none;border:1px dashed rgba(157,181,197,.2);padding:.3rem;font-size:9px;cursor:pointer;width:100%;margin-bottom:.25rem;">
       <div id="admin-hero-bg-preview" style="display:none;margin-bottom:.35rem;position:relative;">
@@ -635,11 +643,12 @@ canvas{max-height:180px;}
         <label class="afl">Notice board — GitHub username</label>
         <input id="nb-gh-user" type="text" placeholder="DEEFIBAO" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
         <div style="font-size:9px;color:#35505e;margin-bottom:.5rem;line-height:1.5;">Shows your 3 most recently updated repos. No API key needed.</div>
-        <label class="afl">Notice board — LinkedIn note (optional)</label>
-        <input id="nb-li-note" type="text" placeholder="e.g. Open to graduate roles" style="width:100%;margin-bottom:.25rem;box-sizing:border-box;">
-        <div style="font-size:9px;color:#35505e;margin-bottom:.5rem;line-height:1.5;">LinkedIn has no public feed API, so this shows a link with your own text.</div>
-        <label class="afl">Notice board — custom notice</label>
-        <input id="nb-custom" type="text" placeholder="e.g. Available for freelance" style="width:100%;margin-bottom:.4rem;box-sizing:border-box;">
+        <label class="afl">Notice board — custom notices</label>
+        <div id="nb-notice-list" style="margin-bottom:.4rem;"></div>
+        <div style="display:flex;gap:.35rem;margin-bottom:.4rem;">
+          <input id="nb-custom" type="text" placeholder="e.g. Available for freelance" style="flex:1;min-width:0;box-sizing:border-box;" onkeydown="if(event.key==='Enter'){event.preventDefault();addNotice();}">
+          <button class="tbtn" style="padding:.3rem .6rem;border-radius:5px;font-size:10px;flex-shrink:0;" onclick="addNotice()">Add</button>
+        </div>
         <button class="tbtn" style="width:100%;padding:.3rem;border-radius:5px;font-size:10px;" onclick="saveNoticeSources()">Save notice board</button>
       </div>
       <button class="tbtn" style="width:100%;padding:.35rem;border-radius:6px;font-size:10px;margin-top:.35rem;" onclick="saveAdminIdentity()">Save identity</button>
@@ -658,7 +667,7 @@ canvas{max-height:180px;}
         <div style="font-size:8px;font-family:'DM Mono',monospace;color:var(--tp);margin-bottom:.5rem;letter-spacing:.1em;">ADD PROJECT</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px;">
           <div><label class="afl">Title</label><input type="text" id="proj-title-inp" placeholder="Project title"></div>
-          <div><label class="afl">Type</label><input type="text" id="proj-type-inp" placeholder="design / academic / digital"></div>
+          <div><label class="afl">Type</label><select id="proj-type-inp"></select></div>
           <div><label class="afl">Tags (comma-sep)</label><input type="text" id="proj-tags-inp" placeholder="Branding, Print"></div>
           <div><label class="afl">Link URL</label><input type="text" id="proj-link-inp" placeholder="https://..."></div>
         </div>
@@ -673,7 +682,11 @@ canvas{max-height:180px;}
           <input type="file" id="proj-vid-inp" accept="video/mp4,video/*" style="background:none;border:1px dashed rgba(157,181,197,.2);padding:.3rem;font-size:9px;cursor:pointer;width:100%;">
           <div id="proj-vid-preview" style="display:none;margin-top:.35rem;"><video id="proj-vid-prev-el" style="width:100%;height:70px;object-fit:cover;border-radius:5px;" controls muted></video></div>
         </div>
-        <button class="tbtn" style="padding:.32rem .7rem;border-radius:5px;font-size:10px;" onclick="addAdminProject()"><i class="fas fa-plus" style="margin-right:2px;font-size:8px;"></i>Add project</button>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+          <button id="proj-submit-btn" class="tbtn" style="padding:.32rem .7rem;border-radius:5px;font-size:10px;" onclick="addAdminProject()"><i class="fas fa-plus" style="margin-right:2px;font-size:8px;"></i>Add project</button>
+          <button id="proj-cancel-btn" onclick="cancelEditProject()" style="display:none;align-items:center;padding:.32rem .7rem;border-radius:5px;font-size:10px;background:none;border:1px solid var(--tb);color:#7090a0;cursor:pointer;">Cancel</button>
+          <span id="proj-form-mode" style="font-size:8px;font-family:'DM Mono',monospace;color:var(--tp);letter-spacing:.1em;"></span>
+        </div>
       </div>
     </div>
 
@@ -765,7 +778,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/p
 
 // ── SITE DATA ──────────────────────────────────────────────────────────────
 let SD={
-  name:'Your Name',cvUrl:'#',tourOnLoad:true,
+  name:'Your Name',cvUrl:'#',tourOnLoad:false,
   cvDocs:[],
   heroBg:'',
   tabs:['Design','Academic','Digital','Branding','Photography','Other'],
@@ -1101,7 +1114,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   try{ initIdleSlideshow(); }catch(e){}
   try{ startLiveSync(); }catch(e){}
 
-  if(SD.tourOnLoad&&!localStorage.getItem('tf5-tour-done'))setTimeout(startTour,600);
+  if(SD.tourOnLoad===true&&!localStorage.getItem('tf5-tour-done'))setTimeout(startTour,600);
   document.addEventListener('click',e=>{
     const w=document.getElementById('tools-dropdown-wrap');
     if(w&&!w.contains(e.target))hideToolsMenu();
@@ -1440,7 +1453,7 @@ async function fetchNoticeItems(){
   const src=SD.noticeSources||{};
 
   // 1. Manual notice — always first
-  if(src.custom&&src.custom.trim())items.push({icon:'→',text:src.custom.trim()});
+  getNotices().forEach(function(n){ if(n&&n.trim())items.push({icon:'→',text:n.trim()}); });
 
   const server=await hasServer();
 
@@ -1537,9 +1550,9 @@ function saveNoticeSources(){
   SD.noticeSources={
     yt:((document.getElementById('nb-yt-url')||{}).value||'').trim(),
     li:((document.getElementById('nb-li-url')||{}).value||'').trim(),
-    custom:((document.getElementById('nb-custom')||{}).value||'').trim(),
+    notices:getNotices(),
     ghUser:((document.getElementById('nb-gh-user')||{}).value||'').trim(),
-    liNote:((document.getElementById('nb-li-note')||{}).value||'').trim()
+    liNote:''
   };
   saveSD();
   _tickerPos=0;
@@ -1819,6 +1832,7 @@ async function checkAdminPwd(){
 }
 
 function closeAdminPanel(){
+  try{_editingProject=null;setProjectFormMode(false);}catch(e){}
   const p=document.getElementById('admin-panel');
   if(p){
     p.classList.remove('open');
@@ -1853,7 +1867,7 @@ function adminLogout(){
 function populateAdmin(){
   document.getElementById('admin-name').value=SD.name||'';
   document.getElementById('admin-cv-url').value=SD.cvUrl||'';
-  document.getElementById('admin-tour-on').checked=SD.tourOnLoad!==false;
+  document.getElementById('admin-tour-on').checked=SD.tourOnLoad===true;
   document.getElementById('admin-tabs-inp').value=(SD.tabs||[]).join(', ');
   // Restore hero bg preview if set
   const prevWrap=document.getElementById('admin-hero-bg-preview');
@@ -1862,11 +1876,11 @@ function populateAdmin(){
   const ns=SD.noticeSources||{};
   const y=document.getElementById('nb-yt-url');if(y)y.value=ns.yt||'';
   const l=document.getElementById('nb-li-url');if(l)l.value=ns.li||'';
-  const c=document.getElementById('nb-custom');if(c)c.value=ns.custom||'';
+  renderNoticeList();
   const g=document.getElementById('nb-gh-user');if(g)g.value=ns.ghUser||'';
-  const ln=document.getElementById('nb-li-note');if(ln)ln.value=ns.liNote||'';
+
   else if(prevWrap){prevWrap.style.display='none';}
-  renderAdminProjects();renderAdminLists();renderCVDocs();
+  renderProjTypeOptions();renderAdminProjects();renderAdminLists();renderCVDocs();
 }
 
 // Hero background image upload handler
@@ -1929,14 +1943,208 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 });
 
+// ── NOTICE MANAGER ─────────────────────────────────────────────────────────
+function getNotices(){
+  const ns=SD.noticeSources||(SD.noticeSources={});
+  if(!Array.isArray(ns.notices)){
+    // Migrate the old single-string field
+    ns.notices=(ns.custom&&ns.custom.trim())?[ns.custom.trim()]:[];
+  }
+  return ns.notices;
+}
+
+function renderNoticeList(){
+  const el=document.getElementById('nb-notice-list');
+  if(!el)return;
+  const list=getNotices();
+  if(!list.length){
+    el.innerHTML='<div style="font-size:9px;color:#263038;font-family:\'DM Mono\',monospace;padding:.3rem 0;">No notices yet</div>';
+    return;
+  }
+  el.innerHTML=list.map(function(n,i){
+    return '<div style="display:flex;align-items:center;gap:5px;padding:.3rem .5rem;border:1px solid var(--tb);border-radius:5px;margin-bottom:3px;background:rgba(12,15,17,.5);">'
+      +'<span style="color:var(--tp);font-size:9px;flex-shrink:0;">&#8594;</span>'
+      +'<input value="'+esc(n)+'" data-i="'+i+'" onchange="updateNotice('+i+',this.value)" '
+      +'style="flex:1;min-width:0;background:none;border:none;color:#7090a0;font-size:9px;font-family:\'DM Mono\',monospace;padding:0;" '
+      +'title="Edit and press Tab or click away to save">'
+      +'<button onclick="moveNotice('+i+',-1)" '+(i===0?'disabled':'')+' style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;'+(i===0?'opacity:.25;':'')+'" title="Move up">&#9650;</button>'
+      +'<button onclick="moveNotice('+i+',1)" '+(i===list.length-1?'disabled':'')+' style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;'+(i===list.length-1?'opacity:.25;':'')+'" title="Move down">&#9660;</button>'
+      +'<button onclick="removeNotice('+i+')" style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;" title="Remove"><i class="fas fa-trash"></i></button>'
+      +'</div>';
+  }).join('');
+}
+
+function addNotice(){
+  const inp=document.getElementById('nb-custom');
+  if(!inp)return;
+  const v=(inp.value||'').trim();
+  if(!v){adminMsg('Notice is empty',true);inp.focus();return;}
+  getNotices().push(v);
+  inp.value='';
+  saveSD();renderNoticeList();initNoticeTicker();
+  adminMsg('Notice added');
+}
+
+function updateNotice(i,v){
+  const list=getNotices();
+  const t=(v||'').trim();
+  if(!t){removeNotice(i);return;}
+  if(list[i]===t)return;
+  list[i]=t;
+  saveSD();renderNoticeList();initNoticeTicker();
+  adminMsg('Notice updated');
+}
+
+function removeNotice(i){
+  getNotices().splice(i,1);
+  saveSD();renderNoticeList();initNoticeTicker();
+  adminMsg('Notice removed');
+}
+
+function moveNotice(i,d){
+  const list=getNotices();
+  const j=i+d;
+  if(j<0||j>=list.length)return;
+  const tmp=list[i];list[i]=list[j];list[j]=tmp;
+  saveSD();renderNoticeList();initNoticeTicker();
+}
+
+function renderProjTypeOptions(sel,tabsOverride){
+  const el=document.getElementById('proj-type-inp');
+  if(!el)return;
+  const cur=(sel!==undefined&&sel!==null)?String(sel).toLowerCase():String(el.value||'').toLowerCase();
+
+  const tabs=Array.isArray(tabsOverride)?tabsOverride:(SD.tabs||[]);
+  const seen={};
+  let html='';
+
+  // Current portfolio tabs
+  tabs.forEach(function(t){
+    const label=String(t).trim();
+    if(!label)return;
+    const v=label.toLowerCase();
+    if(seen[v])return;
+    seen[v]=1;
+    html+='<option value="'+v+'">'+esc(label)+'</option>';
+  });
+
+  // Types already used by existing projects but no longer a tab — keep them
+  // selectable so editing a project doesn't silently change its category.
+  const orphans=[];
+  (SD.projects||[]).forEach(function(p){
+    const v=String(p.type||'').toLowerCase();
+    if(!v||seen[v])return;
+    seen[v]=1;orphans.push(v);
+  });
+  if(orphans.length){
+    html+='<optgroup label="Not in tabs">';
+    orphans.forEach(function(v){
+      html+='<option value="'+v+'">'+esc(v)+'</option>';
+    });
+    html+='</optgroup>';
+  }
+
+  if(!seen['other'])html+='<option value="other">Other</option>';
+
+  el.innerHTML=html;
+  if(cur&&seen[cur])el.value=cur;
+  else if(el.options.length)el.selectedIndex=0;
+}
+
+// Live preview of the Type list while the tabs field is being edited
+function previewTabOptions(raw){
+  const tabs=String(raw||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  renderProjTypeOptions(undefined,tabs);
+}
+
 function renderAdminProjects(){
-  const el=document.getElementById('admin-proj-list');if(!el)return;
-  el.innerHTML=SD.projects.length?SD.projects.map((p,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;padding:.35rem .6rem;border:1px solid var(--tb);border-radius:5px;margin-bottom:3px;background:rgba(12,15,17,.5);">
-      ${p.img?`<img src="${p.img}" style="width:24px;height:24px;object-fit:cover;border-radius:3px;">`:''}
-      <div style="flex:1;font-size:9px;font-family:'DM Mono',monospace;color:#7090a0;">${p.title} <span style="color:#35505e;">(${p.type})</span></div>
-      <button onclick="removeProject(${i})" style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;"><i class="fas fa-trash"></i></button>
-    </div>`).join(''):'<div style="font-size:9px;color:#263038;font-family:\'DM Mono\',monospace;text-align:center;padding:.35rem;">No projects</div>';
+  const el=document.getElementById('admin-proj-list');
+  if(!el)return;
+  const list=SD.projects||[];
+  if(!list.length){
+    el.innerHTML='<div style="font-size:9px;color:#263038;font-family:\'DM Mono\',monospace;text-align:center;padding:.35rem;">No projects</div>';
+    return;
+  }
+  el.innerHTML=list.map(function(p,i){
+    const media=p.video
+      ? '<span style="width:24px;height:24px;border-radius:3px;background:rgba(157,181,197,.1);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--tp);flex-shrink:0;">&#9654;</span>'
+      : (p.img?'<img src="'+p.img+'" style="width:24px;height:24px;object-fit:cover;border-radius:3px;flex-shrink:0;">':'<span style="width:24px;height:24px;border-radius:3px;background:rgba(157,181,197,.06);flex-shrink:0;"></span>');
+    return '<div style="display:flex;align-items:center;gap:6px;padding:.35rem .6rem;border:1px solid var(--tb);border-radius:5px;margin-bottom:3px;background:rgba(12,15,17,.5);">'
+      +media
+      +'<div style="flex:1;min-width:0;font-size:9px;font-family:\'DM Mono\',monospace;color:#7090a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+        +esc(p.title)+' <span style="color:#35505e;">('+esc(p.type||'other')+')</span></div>'
+      +'<button onclick="moveProject('+i+',-1)" '+(i===0?'disabled':'')+' style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;'+(i===0?'opacity:.25;':'')+'" title="Move up">&#9650;</button>'
+      +'<button onclick="moveProject('+i+',1)" '+(i===list.length-1?'disabled':'')+' style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;'+(i===list.length-1?'opacity:.25;':'')+'" title="Move down">&#9660;</button>'
+      +'<button onclick="editProject('+i+')" style="background:none;border:none;color:var(--tp);cursor:pointer;font-size:8px;" title="Edit"><i class="fas fa-pen"></i></button>'
+      +'<button onclick="removeProject('+i+')" style="background:none;border:none;color:#35505e;cursor:pointer;font-size:8px;" title="Delete"><i class="fas fa-trash"></i></button>'
+      +'</div>';
+  }).join('');
+}
+
+// Index of the project currently being edited, or null when adding new
+var _editingProject=null;
+
+function editProject(i){
+  const p=(SD.projects||[])[i];
+  if(!p)return;
+  _editingProject=i;
+  const set=function(id,v){const e=document.getElementById(id);if(e)e.value=v||'';};
+  set('proj-title-inp',p.title);
+  renderProjTypeOptions((p.type||'other').toLowerCase());
+  set('proj-tags-inp',(p.tags||[]).join(', '));
+  set('proj-desc-inp',p.desc);
+  set('proj-link-inp',p.link==='#'?'':p.link);
+  projImgBase64=p.img||'';
+  projVidBase64=p.video||'';
+  // Show existing media
+  const ip=document.getElementById('proj-img-preview');
+  const ipe=document.getElementById('proj-img-prev-el');
+  if(ip&&ipe){ if(p.img){ipe.src=p.img;ip.style.display='block';} else ip.style.display='none'; }
+  const vp=document.getElementById('proj-vid-preview');
+  const vpe=document.getElementById('proj-vid-prev-el');
+  if(vp&&vpe){ if(p.video){vpe.src=p.video;vp.style.display='block';} else vp.style.display='none'; }
+  setProjectFormMode(true);
+  const t=document.getElementById('proj-title-inp');
+  if(t){t.focus();t.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+
+function setProjectFormMode(editing){
+  const btn=document.getElementById('proj-submit-btn');
+  const cancel=document.getElementById('proj-cancel-btn');
+  const hdr=document.getElementById('proj-form-mode');
+  if(btn)btn.innerHTML=editing
+    ? '<i class="fas fa-check" style="margin-right:2px;font-size:8px;"></i>Save changes'
+    : '<i class="fas fa-plus" style="margin-right:2px;font-size:8px;"></i>Add project';
+  if(cancel)cancel.style.display=editing?'inline-flex':'none';
+  if(hdr)hdr.textContent=editing?'EDITING':'';
+}
+
+function cancelEditProject(){
+  _editingProject=null;
+  clearProjectForm();
+  setProjectFormMode(false);
+  adminMsg('Edit cancelled');
+}
+
+function clearProjectForm(){
+  ['proj-title-inp','proj-tags-inp','proj-desc-inp','proj-link-inp'].forEach(function(id){
+    const e=document.getElementById(id);if(e)e.value='';
+  });
+  renderProjTypeOptions('');
+  projImgBase64='';projVidBase64='';
+  ['proj-img-inp','proj-vid-inp'].forEach(function(id){const e=document.getElementById(id);if(e)e.value='';});
+  const ip=document.getElementById('proj-img-preview');if(ip)ip.style.display='none';
+  const vp=document.getElementById('proj-vid-preview');if(vp)vp.style.display='none';
+}
+
+function moveProject(i,d){
+  const list=SD.projects||[];
+  const j=i+d;
+  if(j<0||j>=list.length)return;
+  const tmp=list[i];list[i]=list[j];list[j]=tmp;
+  saveSD();
+  try{renderPortfolio();}catch(e){}
+  renderAdminProjects();
 }
 
 function renderAdminLists(){
@@ -1951,7 +2159,10 @@ function saveAdminIdentity(){
   SD.cvUrl=document.getElementById('admin-cv-url').value;
   const tabsRaw=document.getElementById('admin-tabs-inp').value;
   SD.tabs=tabsRaw.split(',').map(s=>s.trim()).filter(Boolean);
-  saveSD();renderCV();renderFilterBar();renderHeroBg();adminMsg('Identity saved');
+  saveSD();renderCV();renderFilterBar();renderHeroBg();
+  renderProjTypeOptions();          // tabs changed — rebuild the Type list
+  try{renderAdminProjects();}catch(e){}
+  adminMsg('Identity saved');
 }
 function addAdminProject(){
   const g=function(id){return document.getElementById(id);};
@@ -1968,33 +2179,38 @@ function addAdminProject(){
   }
 
   const val=function(id){const e=g(id);return e?(e.value||'').trim():'';};
-
   if(!Array.isArray(SD.projects))SD.projects=[];
 
-  SD.projects.push({
-    id:Date.now(),
+  const data={
     title:t,
-    type:val('proj-type-inp')||'other',
+    type:(val('proj-type-inp')||'other').toLowerCase(),
     tags:val('proj-tags-inp').split(',').map(function(s){return s.trim();}).filter(Boolean),
     desc:val('proj-desc-inp'),
     link:val('proj-link-inp')||'#',
     img:projImgBase64||'',
     video:projVidBase64||''
-  });
+  };
+
+  const editing=(_editingProject!==null&&SD.projects[_editingProject]);
+  if(editing){
+    data.id=SD.projects[_editingProject].id;
+    if(SD.projects[_editingProject].appLink)data.appLink=SD.projects[_editingProject].appLink;
+    SD.projects[_editingProject]=data;
+  } else {
+    data.id=Date.now();
+    SD.projects.push(data);
+  }
 
   saveSD();
   try{renderPortfolio();}catch(e){}
   try{renderFilterBar();}catch(e){}
   try{renderAdminProjects();}catch(e){}
 
-  ['proj-title-inp','proj-type-inp','proj-tags-inp','proj-desc-inp','proj-link-inp']
-    .forEach(function(id){const e=g(id);if(e)e.value='';});
-  projImgBase64='';projVidBase64='';
-  ['proj-img-inp','proj-vid-inp'].forEach(function(id){const e=g(id);if(e)e.value='';});
-  const ip=g('proj-img-preview');if(ip)ip.style.display='none';
-  const vp=g('proj-vid-preview');if(vp)vp.style.display='none';
-
-  adminMsg('Project added: '+t);
+  const wasEditing=!!editing;
+  _editingProject=null;
+  clearProjectForm();
+  setProjectFormMode(false);
+  adminMsg(wasEditing?('Project updated: '+t):('Project added: '+t));
 }
 // ── Admin list helpers ─────────────────────────────────────────────────────
 function _v(id){const e=document.getElementById(id);return e?(e.value||'').trim():'';}
