@@ -1,0 +1,6 @@
+﻿*.bak
+index.html.bak
+data.json
+data.json.bak
+node_modules/
+.env
