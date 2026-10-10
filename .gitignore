@@ -1,6 +1,5 @@
 ﻿*.bak
-index.html.bak
-data.json
+index.html.bakgit
 data.json.bak
 node_modules/
 .env

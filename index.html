@@ -1,3 +1,4 @@
+<!doctype html>
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -769,14 +770,17 @@ The days of forgetting is now in the past! all to be done is just go through the
 
     <!-- Export -->
     <div class="admin-card" style="border-color:rgba(157,181,197,.25);">
-      <h3>EXPORT SITE</h3>
-      <div style="font-size:9px;color:#35505e;line-height:1.65;margin-bottom:.75rem;">Downloads a standalone HTML file with all your current content baked in. Upload this file to your host — all devices will load your saved data.</div>
-      <button class="tbtn" style="width:100%;padding:.38rem;border-radius:6px;font-size:10px;background:rgba(157,181,197,.12);border:1px solid rgba(157,181,197,.25);" onclick="exportSite()">
-        <i class="fas fa-download" style="margin-right:4px;font-size:9px;"></i>Download tifabo.html
+      <h3>PUBLISH CONTENT</h3>
+      <div style="font-size:9px;color:#35505e;line-height:1.65;margin-bottom:.75rem;">Downloads <b>data.json</b> &mdash; your content only. Commit it next to index.html and the site is populated for every visitor, on every device and domain. Browser storage never leaves this browser, so this is the step that actually publishes.</div>
+      <button class="tbtn" style="width:100%;padding:.38rem;border-radius:6px;font-size:10px;background:rgba(157,181,197,.12);border:1px solid rgba(157,181,197,.25);" onclick="exportData()">
+        <i class="fas fa-download" style="margin-right:4px;font-size:9px;"></i>Download data.json
+      </button>
+      <button class="tbtn" style="width:100%;margin-top:.4rem;padding:.3rem;border-radius:6px;font-size:9px;background:none;border:1px solid rgba(157,181,197,.15);color:#35505e;" onclick="exportSite()" title="Standalone HTML with everything baked in. Can be very large.">
+        Full HTML backup
       </button>
       <div style="margin-top:.6rem;padding-top:.55rem;border-top:1px solid var(--tb);">
-        <div style="font-size:9px;color:#35505e;margin-bottom:.4rem;">Or import a previously exported file:</div>
-        <input type="file" id="import-site-inp" accept=".html" style="background:none;border:1px dashed rgba(157,181,197,.15);padding:.25rem;font-size:9px;cursor:pointer;width:100%;box-sizing:border-box;" onchange="importSite(event)">
+        <div style="font-size:9px;color:#35505e;margin-bottom:.4rem;">Or import a data.json / exported HTML file:</div>
+        <input type="file" id="import-site-inp" accept=".json,.html" style="background:none;border:1px dashed rgba(157,181,197,.15);padding:.25rem;font-size:9px;cursor:pointer;width:100%;box-sizing:border-box;" onchange="importSite(event)">
       </div>
     </div>
 
@@ -864,7 +868,7 @@ async function hasServer(){
 }
 
 async function loadSD(){
-  // 1. Server, if one is actually running
+  // 1. Server, if one is actually running (your Windows box via proxy.js)
   try{
     if(await hasServer()){
       const r=await fetch('/data',{cache:'no-store'});
@@ -874,23 +878,56 @@ async function loadSD(){
       }
     }
   }catch(e){}
-  // 2. IndexedDB — the real local store
+
+  // 2. Published content — data.json committed next to index.html.
+  //    This is what makes the site work on static hosting such as GitHub
+  //    Pages: the content travels with the deployment, so every visitor on
+  //    every device and every domain sees the same thing.
+  let pub=null;
   try{
-    const d=await idbGet();
-    if(d&&Object.keys(d).length){SD={...SD,...d};return;}
-  }catch(e){console.warn('IndexedDB read failed:',e);}
-  // 3. localStorage — legacy/migration only
-  try{
-    const s=localStorage.getItem('tf5-sd');
-    if(s){
-      SD={...SD,...JSON.parse(s)};
-      idbPut(JSON.parse(JSON.stringify(SD))).catch(()=>{});
+    const r=await fetch('data.json',{cache:'no-store'});
+    if(r.ok){
+      const ct=(r.headers.get('content-type')||'').toLowerCase();
+      if(ct.indexOf('json')!==-1||ct.indexOf('text/plain')!==-1){
+        const d=await r.json();
+        if(d&&Object.keys(d).length)pub=d;
+      }
     }
   }catch(e){}
+
+  // 3. This browser's own copy — admin edits that have not been published yet.
+  //    Browser storage is per-origin, so this is empty on a new domain or a
+  //    new device. That is expected, and step 2 covers it.
+  let loc=null;
+  try{
+    const d=await idbGet();
+    if(d&&Object.keys(d).length)loc=d;
+  }catch(e){console.warn('IndexedDB read failed:',e);}
+  if(!loc){
+    try{
+      const raw=localStorage.getItem('tf5-sd');
+      if(raw){const d=JSON.parse(raw);if(d&&Object.keys(d).length)loc=d;}
+    }catch(e){}
+  }
+
+  // 4. Newest wins, by _savedAt. An unstamped local copy counts as older than
+  //    a stamped publish, so a first-time visitor always gets the published
+  //    site rather than a stale draft.
+  const tp=pub?(Date.parse(pub._savedAt||'')||0):-1;
+  const tl=loc?(Date.parse(loc._savedAt||'')||0):-1;
+  const pick=(tl>tp)?loc:(pub||loc);
+  if(pick){
+    SD={...SD,...pick};
+    window._sdSource=(pick===pub)?'published':'local';
+    if(pick===pub){try{idbPut(JSON.parse(JSON.stringify(SD))).catch(()=>{});}catch(e){}}
+  }else{
+    window._sdSource='built-in';
+  }
 }
 
 async function saveSD(){
   let savedLocally=false,savedRemote=false,err=null;
+  SD._savedAt=new Date().toISOString();
 
   // Primary: IndexedDB (no practical size limit)
   try{
@@ -2342,7 +2379,7 @@ function exportSite(){
   // Splice in the saved SD data
   const before=src.slice(0,markerIdx);
   const after=src.slice(endIdx+1);
-  const exported=before+'let SD='+JSON.stringify(SD)+after;
+  const exported='<!doctype html>\n'+before+'let SD='+JSON.stringify(SD)+after;
   // Trigger download
   const blob=new Blob([exported],{type:'text/html'});
   const a=document.createElement('a');
@@ -2353,24 +2390,51 @@ function exportSite(){
   adminMsg('Site exported — upload tifabo.html to your host');
 }
 
+// ── PUBLISH CONTENT ───────────────────────────────────────────────────────
+// Writes data.json: your content, nothing else. Commit it beside index.html
+// and the site is populated for everyone, everywhere — no browser storage,
+// no 200 MB HTML file.
+function exportData(){
+  SD._savedAt=new Date().toISOString();
+  const json=JSON.stringify(SD,null,2);
+  const mb=json.length/1048576;
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  const size=mb<1?(json.length/1024).toFixed(0)+' KB':mb.toFixed(1)+' MB';
+  if(mb>95)adminMsg('data.json is '+size+' — GitHub rejects anything over 100 MB. Run split-media.js on it first.',true);
+  else if(mb>20)adminMsg('data.json downloaded ('+size+') — large. Run split-media.js on it to move media into assets/.');
+  else adminMsg('data.json downloaded ('+size+') — commit it next to index.html');
+}
+
 function importSite(event){
   const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       const src=e.target.result;
-      // Extract SD from the imported file
-      const marker='let SD=';
-      const idx=src.indexOf(marker);
-      if(idx===-1)throw new Error('No SD found');
-      // Parse JSON object from that position
-      const jsonStart=src.indexOf('{',idx);
-      let depth=0;let jsonEnd=jsonStart;
-      for(let i=jsonStart;i<src.length;i++){
-        if(src[i]==='{')depth++;
-        else if(src[i]==='}'){depth--;if(depth===0){jsonEnd=i;break;}}
+      let importedSD=null;
+      const trimmed=src.replace(/^\uFEFF/,'').trim();
+      if(trimmed.charAt(0)==='{'){
+        // A data.json file
+        importedSD=JSON.parse(trimmed);
+      }else{
+        // An exported HTML file — pull SD out of the source
+        const marker='let SD=';
+        const idx=src.indexOf(marker);
+        if(idx===-1)throw new Error('No SD found');
+        const jsonStart=src.indexOf('{',idx);
+        let depth=0;let jsonEnd=jsonStart;
+        for(let i=jsonStart;i<src.length;i++){
+          if(src[i]==='{')depth++;
+          else if(src[i]==='}'){depth--;if(depth===0){jsonEnd=i;break;}}
+        }
+        importedSD=JSON.parse(src.slice(jsonStart,jsonEnd+1));
       }
-      const importedSD=JSON.parse(src.slice(jsonStart,jsonEnd+1));
+      if(!importedSD||!Object.keys(importedSD).length)throw new Error('Empty file');
       Object.assign(SD,importedSD);
       saveSD();
       renderPortfolio();renderFilterBar();renderCV();renderCVDocs();renderCVPreview();renderHeroBg();

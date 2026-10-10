@@ -1,0 +1,135 @@
+{
+  "name": "Daeron Wallace",
+  "cvUrl": "#",
+  "tourOnLoad": false,
+  "cvDocs": [
+    {
+      "name": "Screenshot 2026-09-28 102754.png",
+      "dataUrl": "assets/src-6.png",
+      "kind": "img"
+    },
+    {
+      "name": "Screenshot 2026-09-28 102827.png",
+      "dataUrl": "assets/href-2.png",
+      "kind": "img"
+    }
+  ],
+  "heroBg": "assets/img-1.jpg",
+  "tabs": [
+    "Networking",
+    "Cybersecurity",
+    "Projects",
+    "Posters",
+    "Misc"
+  ],
+  "noticeSources": {
+    "yt": "",
+    "li": "",
+    "notices": [
+      "Hi, feed that curiousity and search around!",
+      "Open for work!",
+      "Resume updated as of the 4th October 2026",
+      "Im apart of the BCUCS(Birmingham City University Computing Society) as a a Technical Coordinator)"
+    ],
+    "ghUser": "DEEFIBAO",
+    "liNote": ""
+  },
+  "idleTime": 120,
+  "projects": [
+    {
+      "title": "Welcome!",
+      "type": "misc",
+      "tags": [],
+      "desc": "Hi guys, \nThis project has well truly spiraled out lol. this is my Tifabo Site that was initially made for my business in PC engineering, but now is a cool site to plop my content on. thanks to @Jakubmot for the Tifabo logo.\nlook around guys, feed your curiousity :)\n\nps. it's \"Tif- ahh- bo\"...",
+      "link": "#",
+      "img": "assets/src-1.png",
+      "video": "",
+      "id": 1790770102099
+    },
+    {
+      "title": "CLI GUIDE",
+      "type": "networking",
+      "tags": [],
+      "desc": "As of recent, i've created a tool to my site to aid in Layer 2 and 3 networking technologies command line interfaces. \n\nThe days of forgetting is now in the past! all to be done is just go through the many options till you find the desired command. check it out in the \"tools\" drop down bar!",
+      "link": "#",
+      "img": "assets/src-2.png",
+      "video": "",
+      "id": 1790770916005
+    },
+    {
+      "title": "ITIL GUIDE",
+      "type": "cybersecurity",
+      "tags": [],
+      "desc": "My most effective way of understanding courses and practices is by a visual guide. With that said, I now hold a certificate in a ITIL foundational course.",
+      "link": "#",
+      "img": "assets/src-3.png",
+      "video": "",
+      "id": 1791285340000
+    },
+    {
+      "title": "Cisco Networking fundamentals GUIDE",
+      "type": "networking",
+      "tags": [],
+      "desc": "for my CCNA 1 AND 2 certificate, I've created this poster to help assist me prepare for the tests and exams on the course. Posters has always been more useful to me as visually intaking information has helped me with my memory without the stress of cramming and trying to remember. This may also be for someone else, so im happy to post it up so others can potentially study with my material.",
+      "link": "#",
+      "img": "assets/src-4.png",
+      "video": "",
+      "id": 1791384949932
+    },
+    {
+      "title": "Digital Forensics GUIDE",
+      "type": "cybersecurity",
+      "tags": [],
+      "desc": "For the second year to university, I've shown interest in digital forensics as detective work has always seemed so satisfying to me. Especially when it goes my way...\n\nSo for an upcoming course i've prepared a poster that focuses on a summary to Digital Forensics with processes and tools included as this can be material for others to use.",
+      "link": "#",
+      "img": "assets/src-5.png",
+      "video": "",
+      "id": 1791385785027
+    }
+  ],
+  "education": [
+    {
+      "year": "2022-2024",
+      "institution": "Solihull College & University Centre",
+      "qualification": "BTEC Level 3 National Extended Diploma in IT"
+    },
+    {
+      "year": "2024-2027",
+      "institution": "Birmingham City Universtiy",
+      "qualification": "BSc(Hons) Cybnersecurity"
+    }
+  ],
+  "experience": [
+    {
+      "year": "2022-Present",
+      "org": "Teamworks Karting",
+      "role": "IT Technician",
+      "desc": "My role is to provide Maintenance, software updates and fault repairs to the Lasermaxx and Vracing activities in the venue."
+    },
+    {
+      "year": "2026-present",
+      "org": "Cyber Champions",
+      "role": "workshop presenter",
+      "desc": "As of the moment, I locally (west midlands) deliver cybersecurity and online safety presentations to an audience that can be a target to cyberbullying and exploitation"
+    },
+    {
+      "year": "2026-Present",
+      "org": "BCUCS",
+      "role": "Technical Coordinator (cybersecurity)",
+      "desc": "My position is to plan, create, host and oversee Cybersecurity workshop events for students to partake in with the intention to collectively create projects. Alongside my team, we've made a couple workshops so far relating to detection, enumeration and insight and with more to come\""
+    }
+  ],
+  "links": [
+    {
+      "label": "Linked in",
+      "url": "https://www.linkedin.com/in/daeron-wallace/?isSelfProfile=true",
+      "icon": "fa-link"
+    },
+    {
+      "label": "GitHub",
+      "url": "https://github.com/DEEFIBAO",
+      "icon": "fa-link"
+    }
+  ],
+  "_savedAt": "2026-10-10T09:42:29.178Z"
+}
