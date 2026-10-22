@@ -246,9 +246,14 @@ canvas{max-height:180px;}
   transition:min-height .55s var(--ease),padding .55s var(--ease);
   will-change:min-height;
 }
-#port-hero #portfolio-title{transition:font-size .55s var(--ease),letter-spacing .55s var(--ease);}
+#port-hero #portfolio-title{font-size:min(var(--hero-title-size,2.4rem),13vw);color:var(--hero-title-color,#d0e2ec);transition:font-size .55s var(--ease),letter-spacing .55s var(--ease),color .3s var(--ease);}
 #port-hero #portfolio-subtitle,#port-hero .stag{transition:opacity .4s var(--ease);}
 /* Compact state */
+/* Over a photo, hero text needs separation from the image */
+#port-hero.has-bg #portfolio-title,
+#port-hero.has-bg #portfolio-subtitle,
+#port-hero.has-bg #port-hero-eyebrow{text-shadow:0 2px 16px rgba(8,11,13,.7);}
+#port-hero.has-bg #portfolio-subtitle{color:#9fb6c3;}
 #port-hero.hero-compact{min-height:0;padding-top:1.35rem!important;padding-bottom:.9rem!important;}
 #port-hero.hero-compact #portfolio-title{font-size:1.45rem;letter-spacing:-.02em;}
 #port-hero.hero-compact #portfolio-subtitle{opacity:0;height:0;margin:0;overflow:hidden;}
@@ -257,6 +262,56 @@ canvas{max-height:180px;}
   #port-hero{min-height:36vh;}
   #port-hero.hero-compact{min-height:0;padding-top:.9rem!important;padding-bottom:.7rem!important;}
   #port-hero.hero-compact #portfolio-title{font-size:1.15rem;}
+}
+
+/* ── Description board: the introduction above the project grid ──────────
+   Moves like the hero — tall by default, shrinks once you have scrolled
+   past it, grows back the moment you scroll up. */
+#port-desc{
+  min-height:44vh;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;
+  padding:3.25rem 2rem;
+  border-bottom:1px solid var(--tb);
+  background:
+    radial-gradient(120% 90% at 50% 0%,rgba(157,181,197,.055) 0%,rgba(157,181,197,0) 62%),
+    var(--td);
+  transition:min-height .55s var(--ease),padding .55s var(--ease),
+             opacity .6s var(--ease),transform .6s var(--ease);
+  will-change:min-height;
+}
+#port-desc-inner{max-width:760px;width:100%;}
+#port-desc #port-desc-title{
+  font-size:min(var(--desc-title-size,3.2rem),13vw);
+  color:var(--desc-title-color,#9DB5C5);
+  font-weight:700;letter-spacing:-.035em;line-height:1.04;margin:0 0 .55rem;
+  transition:font-size .55s var(--ease),letter-spacing .55s var(--ease),color .3s var(--ease);
+}
+#port-desc #port-desc-body{
+  font-size:.92rem;color:#5d7b8b;line-height:1.75;margin:0 auto;max-width:62ch;
+  white-space:pre-wrap;
+  transition:opacity .4s var(--ease);
+}
+#port-desc #port-desc-eyebrow,#port-desc #port-desc-sub{transition:opacity .4s var(--ease);}
+#port-desc #port-desc-sub{font-size:.8rem;color:#35505e;margin-top:.75rem;}
+/* Compact state — mirrors .hero-compact */
+#port-desc.desc-compact{min-height:0;padding-top:1.5rem!important;padding-bottom:1.15rem!important;}
+#port-desc.desc-compact #port-desc-title{font-size:1.45rem;letter-spacing:-.02em;}
+#port-desc.desc-compact #port-desc-body,
+#port-desc.desc-compact #port-desc-sub{opacity:0;height:0;margin:0;overflow:hidden;}
+#port-desc.desc-compact #port-desc-eyebrow{opacity:.5;}
+/* Reveal on first entry. 'desc-armed' is added by JS, so with JS disabled
+   the board is simply visible rather than stuck at opacity 0. */
+#port-desc.desc-armed{opacity:0;transform:translateY(24px);}
+#port-desc.desc-armed.desc-in{opacity:1;transform:none;}
+@media(max-width:600px){
+  #port-desc{min-height:34vh;padding:2.1rem 1.1rem;}
+  #port-desc.desc-compact{padding-top:1.1rem!important;padding-bottom:.85rem!important;}
+  #port-desc.desc-compact #port-desc-title{font-size:1.15rem;}
+  #port-desc #port-desc-body{font-size:.85rem;}
+}
+@media(prefers-reduced-motion:reduce){
+  #port-desc.desc-armed{opacity:1;transform:none;}
 }
 
 /* ── Mobile interaction fixes ── */
@@ -420,8 +475,8 @@ canvas{max-height:180px;}
   <div id="port-hero" style="padding: 2.5rem 2rem 1.25rem; text-align: center; border-bottom: 1px solid var(--tb); position: relative; background-size: cover; background-position: center center; transition: padding 0.45s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.45s cubic-bezier(0.4, 0, 0.2, 1); background-image: url(&quot;assets/img-1.jpg&quot;);" class="">
     <div id="port-hero-overlay" style="display: block; position: absolute; inset: 0px; background: rgba(15, 18, 20, 0.6); pointer-events: none;"></div>
     <div style="position:relative;z-index:1;">
-      <div class="stag" style="justify-content:center;margin-bottom:.5rem;">TIFABO — PORTFOLIO</div>
-      <h1 style="font-size:2.4rem;font-weight:700;letter-spacing:-.04em;color:#d0e2ec;margin:0 0 .4rem;" id="portfolio-title">Daeron's Portfolio</h1>
+      <div class="stag" id="port-hero-eyebrow" style="justify-content:center;margin-bottom:.5rem;">TIFABO — PORTFOLIO</div>
+      <h1 style="font-weight:700;letter-spacing:-.04em;margin:0 0 .4rem;" id="portfolio-title">Daeron's Portfolio</h1>
       <p style="font-size:.9rem;color:#35505e;margin:0;" id="portfolio-subtitle">Projects, case studies, and creative output.</p>
     </div>
   </div>
@@ -434,6 +489,16 @@ canvas{max-height:180px;}
     </div>
 
   </div>
+
+  <!-- Description board — introduction shown before the projects -->
+  <section id="port-desc">
+    <div id="port-desc-inner">
+      <div class="stag" id="port-desc-eyebrow" style="justify-content:center;margin-bottom:.6rem;">INTRODUCTION</div>
+      <h2 id="port-desc-title">Description</h2>
+      <p id="port-desc-body">A short introduction to what you are about to look through.</p>
+      <div id="port-desc-sub"></div>
+    </div>
+  </section>
 
   <!-- Filters -->
   <div style="padding:.85rem 2rem;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--tb);" id="port-filter-bar"><button class="pfilt active" onclick="filterPort('all',this)">All work</button><button class="pfilt" onclick="filterPort('networking',this)">Networking</button><button class="pfilt" onclick="filterPort('cybersecurity',this)">Cybersecurity</button><button class="pfilt" onclick="filterPort('projects',this)">Projects</button><button class="pfilt" onclick="filterPort('posters',this)">Posters</button><button class="pfilt" onclick="filterPort('misc',this)">Misc</button></div>
@@ -653,6 +718,62 @@ The days of forgetting is now in the past! all to be done is just go through the
   </div>
   <div class="admin-body">
 
+    <!-- Hero + description board -->
+    <div class="admin-card">
+      <h3>HERO &amp; DESCRIPTION</h3>
+
+      <div style="font-size:9px;color:#35505e;line-height:1.6;margin-bottom:.6rem;">The big title at the top of the page. Changes show instantly; press Save to keep them.</div>
+
+      <label class="afl">Small wording above</label>
+      <input type="text" id="hd-hero-eyebrow" placeholder="TIFABO — PORTFOLIO" style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewHero()">
+
+      <label class="afl">Title</label>
+      <input type="text" id="hd-hero-title" placeholder="Daeron's Portfolio" style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewHero()">
+
+      <label class="afl">Title colour</label>
+      <div style="display:flex;gap:.35rem;align-items:center;margin-bottom:.45rem;">
+        <input type="color" id="hd-hero-color" value="#9DB5C5" style="flex:1;min-width:0;height:26px;padding:0;border:1px solid var(--tb);border-radius:5px;background:none;cursor:pointer;" oninput="previewHero()">
+        <button class="tbtn" style="padding:.25rem .5rem;border-radius:5px;font-size:9px;flex-shrink:0;" onclick="resetHeroColor()" title="Back to the TIFABO blue">Blue</button>
+      </div>
+
+      <label class="afl">Title size <span id="hd-hero-size-out" style="color:var(--tp);">2.4rem</span></label>
+      <input type="range" id="hd-hero-size" min="1.2" max="5" step="0.1" value="2.4" style="width:100%;margin-bottom:.45rem;" oninput="previewHero()">
+
+      <label class="afl">Small wording below</label>
+      <input type="text" id="hd-hero-sub" placeholder="Projects, case studies, and creative output." style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewHero()">
+
+      <div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid var(--tb);">
+        <label class="afl" style="display:flex;align-items:center;gap:6px;margin-bottom:.5rem;cursor:pointer;">
+          <input type="checkbox" id="hd-desc-on" checked style="width:auto;margin:0;cursor:pointer;" onchange="previewDesc()">
+          Show the description board
+        </label>
+        <div style="font-size:9px;color:#35505e;line-height:1.6;margin-bottom:.6rem;">The introduction a visitor reads between the updates bar and your projects.</div>
+
+        <label class="afl">Small wording above</label>
+        <input type="text" id="hd-desc-eyebrow" placeholder="INTRODUCTION" style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewDesc()">
+
+        <label class="afl">Heading</label>
+        <input type="text" id="hd-desc-title" placeholder="Description" style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewDesc()">
+
+        <label class="afl">Heading colour</label>
+        <div style="display:flex;gap:.35rem;align-items:center;margin-bottom:.45rem;">
+          <input type="color" id="hd-desc-color" value="#9DB5C5" style="flex:1;min-width:0;height:26px;padding:0;border:1px solid var(--tb);border-radius:5px;background:none;cursor:pointer;" oninput="previewDesc()">
+          <button class="tbtn" style="padding:.25rem .5rem;border-radius:5px;font-size:9px;flex-shrink:0;" onclick="resetDescColor()" title="Back to the TIFABO blue">Blue</button>
+        </div>
+
+        <label class="afl">Heading size <span id="hd-desc-size-out" style="color:var(--tp);">3.2rem</span></label>
+        <input type="range" id="hd-desc-size" min="1.2" max="6" step="0.1" value="3.2" style="width:100%;margin-bottom:.45rem;" oninput="previewDesc()">
+
+        <label class="afl">Body text</label>
+        <textarea id="hd-desc-body" rows="4" placeholder="A short introduction to what you are about to look through." style="width:100%;margin-bottom:.45rem;box-sizing:border-box;resize:vertical;" oninput="previewDesc()"></textarea>
+
+        <label class="afl">Small wording below</label>
+        <input type="text" id="hd-desc-sub" placeholder="Scroll on for the work itself" style="width:100%;margin-bottom:.45rem;box-sizing:border-box;" oninput="previewDesc()">
+      </div>
+
+      <button class="tbtn" style="width:100%;padding:.35rem;border-radius:6px;font-size:10px;margin-top:.5rem;" onclick="saveHeroDesc()">Save hero &amp; description</button>
+    </div>
+
     <!-- Identity -->
     <div class="admin-card">
       <h3>IDENTITY</h3>
@@ -807,7 +928,11 @@ The days of forgetting is now in the past! all to be done is just go through the
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// pdf.js is loaded from a CDN. If that request is blocked or slow this must not
+// take the rest of the page down with it — the site works without PDF previews.
+try{ if(typeof pdfjsLib!=='undefined'&&pdfjsLib.GlobalWorkerOptions){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+} }catch(e){console.warn('pdf.js unavailable:',e);}
 
 // ── SITE DATA ──────────────────────────────────────────────────────────────
 let SD={"name":"Daeron Wallace","cvUrl":"#","tourOnLoad":false,"cvDocs":[{"name":"Screenshot 2026-09-28 102754.png","dataUrl":"assets/src-6.png","kind":"img"},{"name":"Screenshot 2026-09-28 102827.png","dataUrl":"assets/href-2.png","kind":"img"}],"heroBg":"assets/img-1.jpg","tabs":["Networking","Cybersecurity","Projects","Posters","Misc"],"noticeSources":{"yt":"","li":"","notices":["Hi, feed that curiousity and search around!","Open for work!","Resume updated as of the 4th October 2026","Im apart of the BCUCS(Birmingham City University Computing Society) as a a Technical Coordinator)"],"ghUser":"DEEFIBAO","liNote":""},"idleTime":120,"projects":[{"title":"Welcome!","type":"misc","tags":[],"desc":"Hi guys, \nThis project has well truly spiraled out lol. this is my Tifabo Site that was initially made for my business in PC engineering, but now is a cool site to plop my content on. thanks to @Jakubmot for the Tifabo logo.\nlook around guys, feed your curiousity :)\n\nps. it's \"Tif- ahh- bo\"...","link":"#","img":"assets/src-1.png","video":"","id":1790770102099},{"title":"CLI GUIDE","type":"networking","tags":[],"desc":"As of recent, i've created a tool to my site to aid in Layer 2 and 3 networking technologies command line interfaces. \n\nThe days of forgetting is now in the past! all to be done is just go through the many options till you find the desired command. check it out in the \"tools\" drop down bar!","link":"#","img":"assets/src-2.png","video":"","id":1790770916005},{"title":"ITIL GUIDE","type":"cybersecurity","tags":[],"desc":"My most effective way of understanding courses and practices is by a visual guide. With that said, I now hold a certificate in a ITIL foundational course.","link":"#","img":"assets/src-3.png","video":"","id":1791285340000},{"title":"Cisco Networking fundamentals GUIDE","type":"networking","tags":[],"desc":"for my CCNA 1 AND 2 certificate, I've created this poster to help assist me prepare for the tests and exams on the course. Posters has always been more useful to me as visually intaking information has helped me with my memory without the stress of cramming and trying to remember. This may also be for someone else, so im happy to post it up so others can potentially study with my material.","link":"#","img":"assets/src-4.png","video":"","id":1791384949932},{"title":"Digital Forensics GUIDE","type":"cybersecurity","tags":[],"desc":"For the second year to university, I've shown interest in digital forensics as detective work has always seemed so satisfying to me. Especially when it goes my way...\n\nSo for an upcoming course i've prepared a poster that focuses on a summary to Digital Forensics with processes and tools included as this can be material for others to use.","link":"#","img":"assets/src-5.png","video":"","id":1791385785027}],"education":[{"year":"2022-2024","institution":"Solihull College & University Centre","qualification":"BTEC Level 3 National Extended Diploma in IT"},{"year":"2024-2027","institution":"Birmingham City Universtiy","qualification":"BSc(Hons) Cybnersecurity"}],"experience":[{"year":"2022-Present","org":"Teamworks Karting","role":"IT Technician","desc":"My role is to provide Maintenance, software updates and fault repairs to the Lasermaxx and Vracing activities in the venue."},{"year":"2026-present","org":"Cyber Champions","role":"workshop presenter","desc":"As of the moment, I locally (west midlands) deliver cybersecurity and online safety presentations to an audience that can be a target to cyberbullying and exploitation"},{"year":"2026-Present","org":"BCUCS","role":"Technical Coordinator (cybersecurity)","desc":"My position is to plan, create, host and oversee Cybersecurity workshop events for students to partake in with the intention to collectively create projects. Alongside my team, we've made a couple workshops so far relating to detection, enumeration and insight and with more to come\""}],"links":[{"label":"Linked in","url":"https://www.linkedin.com/in/daeron-wallace/?isSelfProfile=true","icon":"fa-link"},{"label":"GitHub","url":"https://github.com/DEEFIBAO","icon":"fa-link"}]};
@@ -1104,6 +1229,7 @@ function onVis(){ if(!document.hidden) checkForUpdates(); }  // catch up on retu
 function initHeroScroll(){
   const hero=document.getElementById('port-hero');
   const page=document.getElementById('page-portfolio');
+  const desc=document.getElementById('port-desc');
   if(!hero||!page)return;
   // .page is the scroll container (html/body/#main-area are all overflow:hidden)
   let lastY=0,ticking=false;
@@ -1113,6 +1239,14 @@ function initHeroScroll(){
     if(y<=10){hero.classList.remove('hero-compact');}
     else if(delta<-6){hero.classList.remove('hero-compact');}
     else if(delta>6){hero.classList.add('hero-compact');}
+    // Description board: same language as the hero, but it only shrinks once
+    // you have actually scrolled past it — so it is full size on arrival.
+    if(desc&&desc.style.display!=='none'){
+      const vh=window.innerHeight||document.documentElement.clientHeight||0;
+      const r=desc.getBoundingClientRect();
+      if(y<=10||delta<-6)desc.classList.remove('desc-compact');
+      else if(delta>6&&r.bottom<vh*0.45)desc.classList.add('desc-compact');
+    }
     if(Math.abs(delta)>2)lastY=y;
     ticking=false;
   }
@@ -1123,10 +1257,139 @@ function initHeroScroll(){
   update();
 }
 
+// ── HERO + DESCRIPTION BOARD ───────────────────────────────────────────────
+// Both blocks are driven from SD so they can be edited in Admin. Each has a
+// text, a colour, a size and small wording above and below.
+const HERO_BLUE='#9DB5C5';
+
+function _hdVal(v,fallback){return (v===undefined||v===null||v==='')?fallback:v;}
+
+function heroVals(fromInputs){
+  const g=function(id){const e=document.getElementById(id);return e?e.value:undefined;};
+  if(fromInputs){
+    return {
+      eyebrow:_hdVal(g('hd-hero-eyebrow'),''),
+      title:_hdVal(g('hd-hero-title'),''),
+      color:_hdVal(g('hd-hero-color'),HERO_BLUE),
+      size:parseFloat(g('hd-hero-size'))||2.4,
+      sub:_hdVal(g('hd-hero-sub'),'')
+    };
+  }
+  return {
+    eyebrow:SD.heroEyebrow!==undefined?SD.heroEyebrow:'TIFABO — PORTFOLIO',
+    title:_hdVal(SD.heroTitle,(SD.name?SD.name+"'s Portfolio":'Portfolio')),
+    color:_hdVal(SD.heroColor,HERO_BLUE),
+    size:parseFloat(SD.heroSize)||2.4,
+    sub:SD.heroSubline!==undefined?SD.heroSubline:'Projects, case studies, and creative output.'
+  };
+}
+
+function applyHero(v){
+  const hero=document.getElementById('port-hero');if(!hero)return;
+  const eb=document.getElementById('port-hero-eyebrow');
+  const t=document.getElementById('portfolio-title');
+  const sb=document.getElementById('portfolio-subtitle');
+  if(eb){eb.textContent=v.eyebrow||'';eb.style.display=v.eyebrow?'':'none';}
+  if(t)t.textContent=v.title||'';
+  if(sb){sb.textContent=v.sub||'';sb.style.display=v.sub?'':'none';}
+  hero.style.setProperty('--hero-title-size',(v.size||2.4)+'rem');
+  hero.style.setProperty('--hero-title-color',v.color||HERO_BLUE);
+  const tt=document.getElementById('topbar-title');
+  if(tt&&v.title)tt.textContent=v.title;
+}
+function renderHero(){applyHero(heroVals(false));}
+function previewHero(){
+  applyHero(heroVals(true));
+  const o=document.getElementById('hd-hero-size-out');
+  const r=document.getElementById('hd-hero-size');
+  if(o&&r)o.textContent=(parseFloat(r.value)||2.4).toFixed(1)+'rem';
+}
+
+function descVals(fromInputs){
+  const g=function(id){const e=document.getElementById(id);return e?e.value:undefined;};
+  if(fromInputs){
+    const on=document.getElementById('hd-desc-on');
+    return {
+      on:on?on.checked:true,
+      eyebrow:_hdVal(g('hd-desc-eyebrow'),''),
+      title:_hdVal(g('hd-desc-title'),''),
+      color:_hdVal(g('hd-desc-color'),HERO_BLUE),
+      size:parseFloat(g('hd-desc-size'))||3.2,
+      body:_hdVal(g('hd-desc-body'),''),
+      sub:_hdVal(g('hd-desc-sub'),'')
+    };
+  }
+  return {
+    on:SD.descOn!==false,
+    eyebrow:SD.descEyebrow!==undefined?SD.descEyebrow:'INTRODUCTION',
+    title:_hdVal(SD.descTitle,'Description'),
+    color:_hdVal(SD.descColor,HERO_BLUE),
+    size:parseFloat(SD.descSize)||3.2,
+    body:SD.descBody!==undefined?SD.descBody:'A short introduction to what you are about to look through.',
+    sub:SD.descSub!==undefined?SD.descSub:''
+  };
+}
+
+function applyDesc(v){
+  const d=document.getElementById('port-desc');if(!d)return;
+  d.style.display=v.on?'':'none';
+  const eb=document.getElementById('port-desc-eyebrow');
+  const t=document.getElementById('port-desc-title');
+  const b=document.getElementById('port-desc-body');
+  const sb=document.getElementById('port-desc-sub');
+  if(eb){eb.textContent=v.eyebrow||'';eb.style.display=v.eyebrow?'':'none';}
+  if(t){t.textContent=v.title||'';t.style.display=v.title?'':'none';}
+  if(b){b.textContent=v.body||'';b.style.display=v.body?'':'none';}
+  if(sb){sb.textContent=v.sub||'';sb.style.display=v.sub?'':'none';}
+  d.style.setProperty('--desc-title-size',(v.size||3.2)+'rem');
+  d.style.setProperty('--desc-title-color',v.color||HERO_BLUE);
+}
+function renderDesc(){applyDesc(descVals(false));}
+function previewDesc(){
+  applyDesc(descVals(true));
+  const o=document.getElementById('hd-desc-size-out');
+  const r=document.getElementById('hd-desc-size');
+  if(o&&r)o.textContent=(parseFloat(r.value)||3.2).toFixed(1)+'rem';
+}
+
+// Fade/slide the board in the first time it scrolls into view.
+function initDescReveal(){
+  const d=document.getElementById('port-desc');if(!d)return;
+  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced||!('IntersectionObserver' in window)){d.classList.add('desc-armed','desc-in');return;}
+  d.classList.add('desc-armed');
+  const io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){d.classList.add('desc-in');io.disconnect();}
+    });
+  },{threshold:.12});
+  io.observe(d);
+  // Safety net: never leave it hidden if the observer never fires
+  setTimeout(function(){d.classList.add('desc-in');},2500);
+}
+
+function saveHeroDesc(){
+  const h=heroVals(true),d=descVals(true);
+  SD.heroEyebrow=h.eyebrow;SD.heroTitle=h.title;SD.heroColor=h.color;
+  SD.heroSize=h.size;SD.heroSubline=h.sub;
+  SD.descOn=d.on;SD.descEyebrow=d.eyebrow;SD.descTitle=d.title;
+  SD.descColor=d.color;SD.descSize=d.size;SD.descBody=d.body;SD.descSub=d.sub;
+  saveSD();renderHero();renderDesc();
+  adminMsg('Hero and description saved');
+}
+function resetHeroColor(){
+  const e=document.getElementById('hd-hero-color');
+  if(e){e.value=HERO_BLUE;previewHero();}
+}
+function resetDescColor(){
+  const e=document.getElementById('hd-desc-color');
+  if(e){e.value=HERO_BLUE;previewDesc();}
+}
+
 function refreshPortfolioViews(){
   try{
     renderPortfolio();renderFilterBar();renderCV();renderCVDocs();
-    renderCVPreview();renderHeroBg();initNoticeTicker();
+    renderCVPreview();renderHeroBg();renderHero();renderDesc();initNoticeTicker();
   }catch(e){}
 }
 
@@ -1152,10 +1415,11 @@ window.addEventListener('DOMContentLoaded',async()=>{
   const li=document.getElementById('logo-img');if(li)li.src=LOGO_SRC;
   const fav=document.getElementById('favicon');if(fav)fav.href=LOGO_SRC;
   const l2=document.getElementById('logo-img2');if(l2)l2.src=LOGO_SRC;
-  try{
-    renderPortfolio();renderFilterBar();renderCV();renderCVDocs();
-    renderCVPreview();renderHeroBg();initHeroScroll();
-  }catch(e){console.warn('render:',e);}
+  // Each step is isolated: if one render throws (a missing CDN, a bad image)
+  // the others — and the scroll animation — still run.
+  [renderPortfolio,renderFilterBar,renderCV,renderCVDocs,renderCVPreview,
+   renderHeroBg,renderHero,renderDesc,initHeroScroll,initDescReveal]
+    .forEach(function(fn){ try{ fn(); }catch(e){ console.warn('render '+(fn.name||'?')+':',e); } });
   const tt=document.getElementById('topbar-title');
   const pt=document.getElementById('portfolio-title');
   if(tt)tt.textContent=(pt&&pt.textContent)||"Daeron's Portfolio";
@@ -1253,9 +1517,11 @@ function renderHeroBg(){
   if(!hero)return;
   if(SD.heroBg){
     hero.style.backgroundImage=`url('${SD.heroBg}')`;
+    hero.classList.add('has-bg');
     if(overlay)overlay.style.display='block';
   } else {
     hero.style.backgroundImage='none';
+    hero.classList.remove('has-bg');
     if(overlay)overlay.style.display='none';
   }
 }
@@ -1920,6 +2186,19 @@ function populateAdmin(){
   document.getElementById('admin-cv-url').value=SD.cvUrl||'';
   document.getElementById('admin-tour-on').checked=SD.tourOnLoad===true;
   document.getElementById('admin-tabs-inp').value=(SD.tabs||[]).join(', ');
+  // Hero + description board
+  (function(){
+    const set=function(id,v){const e=document.getElementById(id);if(e)e.value=v;};
+    const h=heroVals(false),d=descVals(false);
+    set('hd-hero-eyebrow',h.eyebrow);set('hd-hero-title',h.title);
+    set('hd-hero-color',h.color);set('hd-hero-size',h.size);set('hd-hero-sub',h.sub);
+    const on=document.getElementById('hd-desc-on');if(on)on.checked=d.on;
+    set('hd-desc-eyebrow',d.eyebrow);set('hd-desc-title',d.title);
+    set('hd-desc-color',d.color);set('hd-desc-size',d.size);
+    set('hd-desc-body',d.body);set('hd-desc-sub',d.sub);
+    const ho=document.getElementById('hd-hero-size-out');if(ho)ho.textContent=Number(h.size).toFixed(1)+'rem';
+    const do_=document.getElementById('hd-desc-size-out');if(do_)do_.textContent=Number(d.size).toFixed(1)+'rem';
+  })();
   // Restore hero bg preview if set
   const prevWrap=document.getElementById('admin-hero-bg-preview');
   const prevEl=document.getElementById('admin-hero-bg-prev-el');
@@ -2437,7 +2716,7 @@ function importSite(event){
       if(!importedSD||!Object.keys(importedSD).length)throw new Error('Empty file');
       Object.assign(SD,importedSD);
       saveSD();
-      renderPortfolio();renderFilterBar();renderCV();renderCVDocs();renderCVPreview();renderHeroBg();
+      renderPortfolio();renderFilterBar();renderCV();renderCVDocs();renderCVPreview();renderHeroBg();renderHero();renderDesc();
       populateAdmin();
       adminMsg('Site data imported successfully');
     }catch(err){
